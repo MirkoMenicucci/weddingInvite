@@ -21,7 +21,6 @@
     --dusk: linear-gradient(170deg, #232845 0%, #4b4f7c 38%, #a88ea6 72%, #efcfc0 100%);
     --ease: cubic-bezier(.22, .9, .25, 1);
     --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .34 0 0 0 0 .27 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23g)'/%3E%3C/svg%3E");
-    --fibers: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.06' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .4 0 0 0 0 .3 0 0 -.6 0 .14'/%3E%3C/filter%3E%3Crect width='420' height='420' filter='url(%23f)'/%3E%3C/svg%3E");
     --weave: repeating-linear-gradient(0deg, rgb(0 0 0 / .035) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgb(0 0 0 / .035) 0 1px, transparent 1px 3px);
     --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .32 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
   }
@@ -46,17 +45,11 @@
   body.gated .book-wrap { opacity: 0; }
 
   /* ---------- pagine di carta ---------- */
-  .page { container-type: inline-size; overflow: hidden;
-    background:
-      radial-gradient(ellipse 60% 45% at 25% 20%, rgb(255 255 255 / .55), transparent 70%),
-      radial-gradient(ellipse 50% 40% at 80% 75%, rgb(214 196 176 / .18), transparent 70%),
-      radial-gradient(ellipse 40% 55% at 70% 15%, rgb(226 210 192 / .14), transparent 70%),
-      var(--paper); }
-  /* grana, fibre e bordi: stanno sopra a tutto, così anche foto e testo sembrano stampati sul foglio */
-  .page::before { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; mix-blend-mode: multiply;
-    background: var(--fibers), var(--grain);
-    box-shadow: inset 0 0 7cqw rgb(150 115 85 / .14), inset 0 0 1.2cqw rgb(150 115 85 / .12); }
-  .page.hard::before { background: var(--weave), var(--grain); box-shadow: inset 0 0 6cqw rgb(0 0 0 / .35); }
+  /* pagine interne: carta da acquerello vera come sfondo, le foto ci stanno sopra pulite */
+  .page { container-type: inline-size; overflow: hidden; background: #fbfaf7 url(paper.webp) center / cover; }
+  /* copertine: trama della tela */
+  .page.hard::before { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; mix-blend-mode: multiply;
+    background: var(--weave), var(--grain); box-shadow: inset 0 0 6cqw rgb(0 0 0 / .35); }
   .pg { text-shadow: 0 0 .6px rgb(43 42 58 / .35); }
   .page.hard .pg, .count-page .pg { text-shadow: none; }
   .pg { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 11cqw 9cqw; font-size: clamp(14px, 3.4cqw, 20px); }
@@ -82,7 +75,7 @@
   .back-cover .mono { font-size: clamp(40px, 14cqw, 90px); }
 
   /* ---------- risguardo ---------- */
-  .endpaper { background: var(--blush) var(--noise); }
+  .endpaper { background: url(paper.webp) center / cover, var(--blush); background-blend-mode: multiply; }
   .endpaper .pg { background-image: radial-gradient(circle at 50% 50%, rgb(196 138 120 / .12) 1.4px, transparent 1.6px); background-size: 7cqw 7cqw; }
   .seal { width: 34cqw; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgb(196 138 120 / .5); outline: 1px solid rgb(196 138 120 / .25); outline-offset: 1.6cqw; background: var(--blush); font-size: clamp(26px, 9cqw, 58px); color: var(--rose); }
   .endpaper small { margin-top: 7cqw; font-style: italic; color: var(--rose); }
@@ -96,7 +89,7 @@
   .story p { text-align: left; max-width: 34em; }
   .story p + p { margin-top: .9em; }
 
-  .count-page { background: var(--dusk); color: #fff; }
+  .count-page { background: url(paper.webp) center / cover, var(--dusk); background-blend-mode: multiply; color: #fff; }
   .count-page .page-stars i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; animation: twinkle var(--t) ease-in-out infinite alternate; }
   @keyframes twinkle { from { opacity: .1; } to { opacity: .9; } }
   .count-page h2 { position: relative; text-shadow: 0 2px 20px rgb(35 40 69 / .3); }
