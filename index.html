@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#e8ddd4">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#e8ddd4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Giulia e Marco</title>
 <meta name="description" content="Giulia e Marco si sposano il 12 giugno 2027.">
 <link rel="canonical" href="https://mirkomenicucci.github.io/weddingInvite/">
@@ -28,6 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..600,0..100,0..1;1,9..144,300..600,0..100,0..1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Allura&display=swap" rel="stylesheet">
 <style>
   :root {
     --ink: #2b2a3a;
@@ -79,11 +80,6 @@
   body.filming .stage { transition: opacity 1.2s ease; }
   /* il video resta fermo sull'ultimo fotogramma: è la scrivania su cui si apre il libro */
   body.filming #topShot, body.filming #backdrop { display: none; }
-  /* vignettatura: bordi scuri come in un film, resta fino a quando si apre il libro */
-  .vignette { position: fixed; inset: 0; z-index: 20; pointer-events: none; opacity: 0; transition: opacity 2.6s ease .3s;
-    background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 35%, rgb(12 9 6 / .34) 62%, rgb(12 9 6 / .8) 100%); }
-  body.ready .vignette { opacity: 1; }
-  body.opened .vignette { opacity: 0; transition: opacity 1.6s ease; }
   @keyframes breathe { 50% { opacity: .55; } }
 
   /* ---------- schermata di benvenuto ---------- */
@@ -95,9 +91,9 @@
     transition: opacity 1s ease; }
   body.ready .welcome { opacity: 1; }
   body.zoomed .welcome { opacity: 0; transform: translateY(-20px); transition: opacity 1s ease, transform 1.2s var(--ease); }
-  .welcome-names { font-style: italic; font-weight: 300; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(46px, 12vw, 80px); line-height: 1; letter-spacing: -.02em;
+  .welcome-names { max-width: 100%; white-space: nowrap; font-family: 'Allura', cursive; font-style: normal; font-weight: 400; font-size: clamp(38px, 11.5vw, 88px); line-height: 1; letter-spacing: 0;
     color: #fff; text-shadow: 0 2px 20px rgb(0 0 0 / .3); }
-  .welcome-names .amp { display: block; font-size: .4em; margin: .12em 0; opacity: .7; }
+  .welcome-names .amp { display: inline-block; font-size: .65em; margin: 0 .12em; vertical-align: .08em; opacity: .8; }
   .welcome-sub { margin-top: clamp(14px, 3.5vh, 28px); font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(15px, 3.6vw, 21px); line-height: 1.5; color: rgb(255 255 255 / .9); text-shadow: 0 1px 10px rgb(0 0 0 / .3); max-width: 300px; }
   .welcome-cta { margin-top: clamp(20px, 4.5vh, 36px); font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(13px, 2.8vw, 17px); color: rgb(255 255 255 / .6); text-shadow: 0 1px 6px rgb(0 0 0 / .25); animation: breathe 3s ease-in-out infinite; }
 
@@ -249,9 +245,8 @@
 <img class="shot" id="wide" alt="Una scrivania luminosa con il libro dell'invito, un vaso di ortensie e le fedi">
 <img class="shot" id="topShot" alt="">
 <video id="film" muted playsinline preload="auto" hidden aria-label="La camera si avvicina al libro sulla scrivania"></video>
-<div class="vignette" aria-hidden="true"></div>
 <div class="welcome">
-  <p class="welcome-names display">Giulia<span class="amp">&amp;</span>Marco</p>
+  <p class="welcome-names">Giulia<span class="amp">&amp;</span>Marco</p>
   <p class="welcome-sub">Vi invitiamo a scoprire la nostra storia.<br>Tocca il libro per aprire l'invito.</p>
   <p class="welcome-cta">alza il volume per l'esperienza completa</p>
 </div>
@@ -653,17 +648,18 @@
       await wait(reduce ? 50 : 4100);
     }
     document.body.classList.add('shown');      // compare il libro sfogliabile, identico alla foto
-    await wait(reduce ? 50 : 700);
+    if (!useFilm) await wait(reduce ? 50 : 700);
     document.body.classList.add('printed');    // sulla copertina si "stampano" foto e nomi in oro
-    await wait(reduce ? 300 : 2600);
-    document.body.classList.remove('gated');
-    if (flip.getCurrentPageIndex() === 0) flip.flipNext();
-    document.body.classList.add('opened');     // dietro il libro aperto resta solo la scrivania sfocata
     if (useFilm) {
       film.pause();
       film.hidden = true;
       document.body.classList.remove('filming');
+      document.body.classList.add('opened');
     }
+    await wait(reduce ? 300 : useFilm ? 1800 : 2600);
+    document.body.classList.remove('gated');
+    if (flip.getCurrentPageIndex() === 0) flip.flipNext();
+    document.body.classList.add('opened');     // dietro il libro aperto resta solo la scrivania sfocata
   }
   document.addEventListener('click', () => { if (document.body.classList.contains('gated')) enter(); });
   addEventListener('keydown', e => { if (['Enter', ' '].includes(e.key) && document.body.classList.contains('gated')) { e.preventDefault(); enter(); } });
