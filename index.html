@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#e8ddd4">
+<meta name="color-scheme" content="light">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Giulia e Marco</title>
@@ -47,9 +48,9 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
-  html { background: #e8ddd4; }
+  html { background: #000; }
   body { color: var(--ink); font: 350 18px/1.65 'Fraunces', Georgia, serif; font-variation-settings: "SOFT" 50; -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none;
-    background: radial-gradient(ellipse at 50% 40%, #f6ebe4 0%, #e8d9d0 55%, #cdbcb4 100%); }
+    background: #000; }
   img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; pointer-events: none; }
   a { color: inherit; }
   :focus-visible { outline: 2px solid var(--rose); outline-offset: 4px; border-radius: 6px; }
@@ -59,10 +60,10 @@
 
   /* ---------- scrivania fotografata: zoom dalla foto larga alla vista dall'alto del libro ---------- */
   :root { --cam: cubic-bezier(.62, .02, .2, 1); }
-  body { background: #e8ddd4; }
+  body { background: #000; }
   .shot { position: fixed; left: 0; top: 0; z-index: 0; width: auto; height: auto; max-width: none; object-fit: fill; transform-origin: 0 0; will-change: transform, opacity, filter; }
   /* all'apertura: schermo scuro, poi la stanza compare in dissolvenza (senza movimento) */
-  #wide { opacity: 0; transition: opacity 0s; z-index: 1; }
+  #wide { opacity: 0; transition: opacity 1.2s ease .4s; z-index: 1; }
   body.ready #wide { opacity: 1; }
   #topShot { opacity: 0; filter: blur(12px); z-index: 1; }
   /* lo zoom si attiva solo dopo il tocco */
@@ -89,8 +90,13 @@
   .welcome::before { content: ""; position: absolute; inset: 0; z-index: -1;
     background: linear-gradient(to bottom, rgb(10 8 6 / .72) 0%, rgb(10 8 6 / .55) 30%, rgb(10 8 6 / .2) 55%, transparent 70%);
     transition: opacity 1s ease; }
-  body.ready .welcome { opacity: 1; }
+  body.ready .welcome { opacity: 1; transition: opacity 0s; }
   body.zoomed .welcome { opacity: 0; transform: translateY(-20px); transition: opacity 1s ease, transform 1.2s var(--ease); }
+  body.leaving .welcome { opacity: 0; transform: translateY(-20px); transition: opacity .8s ease, transform .8s var(--ease); }
+  body.leaving .welcome::before { opacity: 0; transition: opacity .8s ease; }
+  .welcome-content { opacity: 0; transition: opacity .7s ease 1.7s; }
+  body.ready .welcome-content { opacity: 1; }
+  body.leaving .welcome-content { opacity: 0; transition: opacity .4s ease; }
   .welcome-names { max-width: 100%; white-space: nowrap; font-family: 'Allura', cursive; font-style: normal; font-weight: 400; font-size: clamp(38px, 11.5vw, 88px); line-height: 1; letter-spacing: 0;
     color: #fff; text-shadow: 0 2px 20px rgb(0 0 0 / .3); }
   .welcome-names .amp { display: inline-block; font-size: .65em; margin: 0 .12em; vertical-align: .08em; opacity: .8; }
@@ -246,9 +252,11 @@
 <img class="shot" id="topShot" alt="">
 <video id="film" muted playsinline preload="auto" hidden aria-label="La camera si avvicina al libro sulla scrivania"></video>
 <div class="welcome">
-  <p class="welcome-names">Giulia<span class="amp">&amp;</span>Marco</p>
-  <p class="welcome-sub">Vi invitiamo a scoprire la nostra storia.<br>Tocca il libro per aprire l'invito.</p>
-  <p class="welcome-cta">alza il volume per l'esperienza completa</p>
+  <div class="welcome-content">
+    <p class="welcome-names">Giulia<span class="amp">&amp;</span>Marco</p>
+    <p class="welcome-sub">Vi invitiamo a scoprire la nostra storia.<br>Tocca il libro per aprire l'invito.</p>
+    <p class="welcome-cta">alza il volume per l'esperienza completa</p>
+  </div>
 </div>
 
 <nav class="nav" aria-label="Capitoli">
@@ -365,6 +373,7 @@
 </div>
 <button class="music paused" id="music" type="button" aria-label="Riprendi la musica" hidden><span></span><span></span><span></span></button>
 <audio id="song" src="musica.mp3" loop preload="auto"></audio>
+<audio id="nature" src="natureSound.mp3" loop preload="auto"></audio>
 
 <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 <script>
@@ -543,8 +552,10 @@
   }
 
   // ---------- ingresso e musica ----------
-  const song = document.getElementById('song'), music = document.getElementById('music');
-  let playing = false, fadeTimer;
+  const song = document.getElementById('song'), nature = document.getElementById('nature'), music = document.getElementById('music');
+  let playing = false, fadeTimer, fadeStartTimer;
+  nature.volume = 1;
+  nature.play().catch(() => {});
   function fadeTo(v, ms) {
     clearInterval(fadeTimer);
     const from = song.volume, t0 = performance.now();
@@ -554,11 +565,16 @@
       if (k === 1) { clearInterval(fadeTimer); if (v === 0) song.pause(); }
     }, 40);
   }
-  function setPlaying(on, first) {
+  function setPlaying(on, first, startDelay = 0) {
     playing = on;
     music.classList.toggle('paused', !on);
     music.setAttribute('aria-label', on ? 'Metti in pausa la musica' : 'Riprendi la musica');
-    if (on) song.play().then(() => fadeTo(.6, first ? 3500 : 1200)).catch(() => {});
+    clearTimeout(fadeStartTimer);
+    if (on) song.play().then(() => {
+      const startFade = () => fadeTo(.6, first ? 3500 : 1200);
+      if (startDelay) fadeStartTimer = setTimeout(startFade, startDelay);
+      else startFade();
+    }).catch(() => {});
     else fadeTo(0, 800);
   }
   song.addEventListener('canplay', () => music.hidden = false, { once: true });
@@ -627,7 +643,10 @@
     if (entered) return;
     entered = true;
     song.volume = 0;
-    setPlaying(true, true);
+    if (nature.paused) nature.play().catch(() => {});
+    setPlaying(true, true, reduce ? 50 : 850);
+    document.body.classList.add('leaving');
+    await wait(reduce ? 50 : 850);
     if (useFilm) {
       // il libro sfogliabile compare in dissolvenza mentre il video sta ancora finendo: nessuno scatto
       document.body.classList.add('zoomed', 'filming');
