@@ -78,8 +78,6 @@
   .arch { width: 100%; height: 100%; border-radius: 999px 999px 4cqw 4cqw; overflow: hidden; }
   .rounded { width: 100%; height: 100%; border-radius: 4cqw; overflow: hidden; position: relative; }
   .rounded figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 18cqw 7cqw 7cqw; color: #fff; font-size: clamp(16px, 4.6cqw, 28px); line-height: 1.3; background: linear-gradient(to top, rgb(35 30 50 / .65), transparent); }
-  .photo-page img { transform: scale(1.15); transition: transform 6s var(--ease); }
-  .photo-page.in img { transform: none; }
   .story p { text-align: left; max-width: 34em; }
   .story p + p { margin-top: .9em; }
 
@@ -95,8 +93,7 @@
   .timer span { font-size: clamp(12px, 3cqw, 17px); color: rgb(255 255 255 / .85); }
 
   .schedule { list-style: none; text-align: left; width: 100%; position: relative; padding-left: 7cqw; }
-  .schedule::before { content: ""; position: absolute; left: 1.5cqw; top: 1em; bottom: 1em; width: 2px; border-radius: 2px; background: linear-gradient(var(--hydrangea), var(--rose)); transform: scaleY(0); transform-origin: top; transition: transform 2.4s var(--ease) .5s; }
-  .in .schedule::before { transform: none; }
+  .schedule::before { content: ""; position: absolute; left: 1.5cqw; top: 1em; bottom: 1em; width: 2px; border-radius: 2px; background: linear-gradient(var(--hydrangea), var(--rose)); }
   .schedule li { position: relative; padding-bottom: 4.6cqw; }
   .schedule li::before { content: ""; position: absolute; left: -7cqw; top: .55em; width: 2.6cqw; height: 2.6cqw; margin-left: .4cqw; border-radius: 50%; background: var(--rose); }
   .schedule time { font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; color: var(--rose); font-size: 1.5em; margin-right: .4em; }
@@ -105,8 +102,6 @@
   .schedule a { font-size: .92em; text-decoration-color: var(--rose); text-underline-offset: 4px; }
 
   .swatches { display: flex; justify-content: center; gap: 5cqw; list-style: none; margin-top: 7cqw; font-size: .85em; }
-  .swatches li { opacity: 0; transform: scale(.6); transition: opacity 1.2s var(--ease), transform 1.4s var(--ease); transition-delay: calc(var(--i) * 120ms + .6s); }
-  .in .swatches li { opacity: 1; transform: none; }
   .swatches li::before { content: ""; display: block; width: 13cqw; height: 13cqw; margin: 0 auto 2cqw; border-radius: 50%; background: var(--c); box-shadow: 0 2cqw 5cqw -2cqw var(--c); }
   .dress p { margin-top: 1em; }
 
@@ -119,11 +114,6 @@
   .end p { font-size: clamp(34px, 11cqw, 72px); line-height: 1.05; }
   .end small { margin-top: 6cqw; color: var(--mute); }
 
-  /* ---------- comparse quando si apre la pagina ---------- */
-  .w { display: inline-block; opacity: .1; filter: blur(6px); transform: translateY(.2em); transition: opacity 1.3s var(--ease), filter 1.3s var(--ease), transform 1.3s var(--ease); transition-delay: calc(var(--i) * 50ms + .4s); }
-  .in .w { opacity: 1; filter: none; transform: none; }
-  .fade-up { opacity: 0; transform: translateY(5cqw); filter: blur(5px); transition: opacity 1.3s var(--ease), transform 1.5s var(--ease), filter 1.3s var(--ease); transition-delay: calc(var(--i, 0) * 140ms + .5s); }
-  .in .fade-up { opacity: 1; transform: none; filter: none; }
 
   /* ---------- comandi ---------- */
   .nav { position: fixed; top: 18px; left: 50%; translate: -50% 0; z-index: 30; display: flex; align-items: center; gap: clamp(14px, 2.6vw, 28px); padding: 9px 22px; border-radius: 999px; font-size: 16px; white-space: nowrap;
@@ -168,9 +158,17 @@
     .stage { padding: 64px 10px 80px; }
     .controls { bottom: 18px; }
   }
+  /* una pagina sola a schermo intero (telefono) */
+  body.single .stage { padding: 0; }
+  body.single .book-wrap { filter: none; }
+  body.single .pg { padding: 84px 9cqw 96px; }
+  body.single .pg::after { display: none; }
+  body.single .photo-page .pg { padding: 72px 5cqw 88px; }
+  body.single .cover .pg { justify-content: center; padding-top: 9cqw; }
+  body.single .folio { bottom: 30px; }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0s !important; transition: none !important; }
-    .w, .fade-up, .swatches li { opacity: 1 !important; filter: none !important; transform: none !important; }
   }
 </style>
 </head>
@@ -300,10 +298,7 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const rand = (a, b) => a + Math.random() * (b - a);
 
-  // ---------- testi parola per parola, stelle ----------
-  document.querySelectorAll('[data-words]').forEach(el => {
-    el.innerHTML = el.textContent.trim().split(/\s+/).map((w, i) => `<span class="w" style="--i:${i}">${w}</span>`).join(' ');
-  });
+  // ---------- stelle ----------
   for (const id of ['stars', 'gateStars']) {
     const box = document.getElementById(id);
     for (let i = 0; i < (id === 'stars' ? 30 : 50); i++) {
@@ -347,7 +342,7 @@
   pageEls.forEach((p, i) => {
     if (i === 0 || i === last) return;
     p.classList.add(i % 2 ? 'left' : 'right');                                   // pagina sinistra o destra del libro aperto
-    if (i > 1) p.querySelector('.pg').insertAdjacentHTML('beforeend', `<span class="folio">${i - 1}</span>`);
+    if (i > 1) p.querySelector('.pg').insertAdjacentHTML('beforeend', `<span class="folio">${i}</span>`);
   });
 
   // dimensiona il libro sullo schermo: due pagine affiancate se c'è spazio, una sola su telefono
@@ -356,8 +351,10 @@
   const availW = innerWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   const availH = innerHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   const spread = innerWidth >= 800 && innerWidth > innerHeight;
-  const pageH = Math.min(availH, (spread ? availW / 2 : availW) / RATIO);
-  const pageW = Math.floor(pageH * RATIO);
+  document.body.classList.toggle('single', !spread);
+  // su telefono la pagina riempie tutto lo schermo
+  const pageH = spread ? Math.min(availH, availW / 2 / RATIO) : innerHeight;
+  const pageW = spread ? Math.floor(pageH * RATIO) : innerWidth;
   document.getElementById('book').style.width = (spread ? pageW * 2 : pageW) + 'px';
 
   const flip = new St.PageFlip(document.getElementById('book'), {
@@ -370,8 +367,6 @@
 
   const prev = document.getElementById('prev'), next = document.getElementById('next'), pageNum = document.getElementById('pageNum');
   function onPage(i) {
-    // anima i contenuti delle pagine visibili (con il libro aperto se ne vedono due)
-    (spread ? [i - 1, i, i + 1] : [i]).forEach(n => pageEls[n]?.classList.add('in'));
     // libro chiuso: la copertina va al centro
     wrap.classList.toggle('closed-front', spread && i === 0);
     wrap.classList.toggle('closed-back', spread && i >= last);
