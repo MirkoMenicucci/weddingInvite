@@ -2,7 +2,10 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0806">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Giulia e Marco</title>
 <meta name="description" content="Giulia e Marco si sposano il 12 giugno 2027.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,6 +29,7 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; overflow: hidden; }
+  html { background: #0a0806; }
   body { color: var(--ink); font: 350 18px/1.65 'Fraunces', Georgia, serif; font-variation-settings: "SOFT" 50; -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none;
     background: radial-gradient(ellipse at 50% 40%, #f6ebe4 0%, #e8d9d0 55%, #cdbcb4 100%); }
   img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; pointer-events: none; }
@@ -63,7 +67,7 @@
     background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 35%, rgb(12 9 6 / .34) 62%, rgb(12 9 6 / .8) 100%); }
   body.ready .vignette { opacity: 1; }
   body.opened .vignette { opacity: 0; transition: opacity 1.6s ease; }
-  .hint { position: fixed; z-index: 25; left: 50%; bottom: 7vh; translate: -50% 0; text-align: center; color: var(--ink); pointer-events: none; white-space: nowrap;
+  .hint { position: fixed; z-index: 25; left: 50%; bottom: calc(7vh + env(safe-area-inset-bottom)); translate: -50% 0; text-align: center; color: var(--ink); pointer-events: none; white-space: nowrap;
     padding: 14px 30px 13px; border-radius: 999px; background: rgb(255 253 250 / .78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 12px 34px rgb(40 30 20 / .18);
     opacity: 0; transition: opacity 1.4s var(--ease) 2.2s, translate 1.4s var(--ease) 2.2s; }
   body.ready .hint { opacity: 1; }
@@ -175,19 +179,19 @@
 
 
   /* ---------- comandi ---------- */
-  .nav { position: fixed; top: 18px; left: 50%; translate: -50% 0; z-index: 30; display: flex; align-items: center; gap: clamp(14px, 2.6vw, 28px); padding: 9px 22px; border-radius: 999px; font-size: 16px; white-space: nowrap;
+  .nav { position: fixed; top: calc(18px + env(safe-area-inset-top)); left: 50%; translate: -50% 0; z-index: 30; display: flex; align-items: center; gap: clamp(14px, 2.6vw, 28px); padding: 9px 22px; border-radius: 999px; font-size: 16px; white-space: nowrap;
     background: rgb(252 248 243 / .7); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 8px 28px rgb(60 40 40 / .1); }
   .nav a { text-decoration: none; cursor: pointer; }
   .nav a:hover { color: var(--rose); }
   .nav .mono { font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: 19px; }
-  .controls { position: fixed; bottom: 22px; left: 50%; translate: -50% 0; z-index: 30; display: flex; align-items: center; gap: 16px; font-style: italic; font-size: 16px; color: var(--mute); white-space: nowrap; }
+  .controls { position: fixed; bottom: calc(22px + env(safe-area-inset-bottom)); left: 50%; translate: -50% 0; z-index: 30; display: flex; align-items: center; gap: 16px; font-style: italic; font-size: 16px; color: var(--mute); white-space: nowrap; }
   .controls button { width: 42px; height: 42px; border-radius: 50%; border: 0; cursor: pointer; font: 400 22px/1 'Fraunces', serif; color: var(--ink); background: rgb(252 248 243 / .75); box-shadow: 0 6px 18px rgb(60 40 40 / .12); transition: transform .4s var(--ease), opacity .4s; }
   .controls button:hover { transform: scale(1.08); }
   .controls button:disabled { opacity: .3; cursor: default; transform: none; }
   body.gated .nav, body.gated .controls, body.gated .music { opacity: 0; pointer-events: none; }
   .nav, .controls, .music { transition: opacity 1.2s var(--ease) 1s; }
 
-  .music { position: fixed; left: 20px; bottom: 20px; z-index: 30; width: 48px; height: 48px; border-radius: 50%; border: 0; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; gap: 3px; padding-bottom: 16px;
+  .music { position: fixed; left: calc(20px + env(safe-area-inset-left)); bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 30; width: 48px; height: 48px; border-radius: 50%; border: 0; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; gap: 3px; padding-bottom: 16px;
     background: rgb(252 248 243 / .8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgb(60 40 40 / .15); }
   .music[hidden] { display: none; }
   .music span { width: 3px; height: 15px; border-radius: 2px; background: var(--rose); transform-origin: bottom; animation: eq .9s ease-in-out infinite alternate; }
@@ -197,9 +201,9 @@
   @keyframes eq { from { transform: scaleY(.3); } }
 
   @media (max-width: 760px) {
-    .nav { top: 12px; padding: 8px 18px; font-size: 15px; gap: 14px; }
+    .nav { top: calc(12px + env(safe-area-inset-top)); padding: 8px 18px; font-size: 15px; gap: 14px; }
     .stage { padding: 64px 10px 80px; }
-    .controls { bottom: 18px; }
+    .controls { bottom: calc(18px + env(safe-area-inset-bottom)); }
   }
   /* una pagina sola a schermo intero (telefono) */
   body.single .stage { padding: 0; }
