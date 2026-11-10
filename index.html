@@ -34,8 +34,8 @@
   :root {
     --ink: #2b2a3a;
     --paper: #fcf8f3;
-    --blush: #f4e4dd;
-    --rose: #c48a78;
+    --blush: #e6edf7;
+    --rose: #7387b6;
     --gold: #d9b779;
     --hydrangea: #8fa6cf;
     --cloth: #2c3150;
@@ -109,10 +109,17 @@
   .welcome-content { opacity: 0; transition: opacity 1.2s ease .4s; }
   body.ready .welcome-content { opacity: 1; }
   body.leaving .welcome-content { opacity: 0; transition: opacity .4s ease; }
+  .welcome-content {
+    width: min(100%, 760px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
   .welcome-names { max-width: 100%; white-space: nowrap; font-family: 'Allura', cursive; font-style: normal; font-weight: 400; font-size: clamp(38px, 11.5vw, 88px); line-height: 1; letter-spacing: 0;
     color: #fff; text-shadow: 0 2px 20px rgb(0 0 0 / .3); }
   .welcome-names .amp { display: inline-block; font-size: .65em; margin: 0 .12em; vertical-align: .08em; opacity: .8; }
-  .welcome-sub { margin-top: clamp(14px, 3.5vh, 28px); font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(15px, 3.6vw, 21px); line-height: 1.5; color: rgb(255 255 255 / .9); text-shadow: 0 1px 10px rgb(0 0 0 / .3); max-width: 300px; }
+  .welcome-sub { margin-top: clamp(14px, 3.5vh, 28px); font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(15px, 3.6vw, 21px); line-height: 1.5; color: rgb(255 255 255 / .9); text-shadow: 0 1px 10px rgb(0 0 0 / .3); max-width: 520px; }
   .welcome-cta { margin-top: clamp(20px, 4.5vh, 36px); font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(13px, 2.8vw, 17px); color: rgb(255 255 255 / .6); text-shadow: 0 1px 6px rgb(0 0 0 / .25); animation: breathe 3s ease-in-out infinite; }
 
   .stage { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 80px 16px 80px; transition: opacity .6s var(--ease); }
@@ -158,8 +165,8 @@
 
   /* ---------- risguardo ---------- */
   .endpaper { background: url(paper.webp) center / cover, var(--blush); background-blend-mode: multiply; }
-  .endpaper .pg { background-image: radial-gradient(circle at 50% 50%, rgb(196 138 120 / .12) 1.4px, transparent 1.6px); background-size: 7cqw 7cqw; }
-  .seal { width: 34cqw; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgb(196 138 120 / .5); outline: 1px solid rgb(196 138 120 / .25); outline-offset: 1.6cqw; background: var(--blush); font-size: clamp(26px, 9cqw, 58px); color: var(--rose); }
+  .endpaper .pg { background-image: radial-gradient(circle at 50% 50%, rgb(115 135 182 / .12) 1.4px, transparent 1.6px); background-size: 7cqw 7cqw; }
+  .seal { width: 34cqw; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgb(115 135 182 / .5); outline: 1px solid rgb(115 135 182 / .25); outline-offset: 1.6cqw; background: var(--blush); font-size: clamp(26px, 9cqw, 58px); color: var(--rose); }
   .endpaper small { margin-top: 7cqw; font-style: italic; color: var(--rose); }
 
   /* ---------- contenuti ---------- */
