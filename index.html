@@ -37,22 +37,27 @@
 
   /* ---------- scrivania fotografata: zoom dalla foto larga alla vista dall'alto del libro ---------- */
   :root { --cam: cubic-bezier(.62, .02, .2, 1); }
-  body { background: #ebe5dc; }
+  body { background: #0a0806; }
   .shot { position: fixed; left: 0; top: 0; z-index: 0; width: auto; height: auto; max-width: none; object-fit: fill; transform-origin: 0 0; will-change: transform, opacity, filter; }
-  #wide { transition: transform 3.8s var(--cam), filter 1.4s ease 2.3s, opacity 1.3s ease 2.5s; }
-  #topShot { opacity: 0; filter: blur(12px); transition: transform 2.2s var(--cam) 1.9s, opacity 1.4s ease 2.2s, filter 1.8s ease 2.2s; }
-  body.zoomed #wide { opacity: 0; filter: blur(8px); }
-  body.zoomed #topShot { opacity: 1; filter: none; }
+  /* all'apertura: schermo scuro, poi la stanza compare in dissolvenza (senza movimento) */
+  #wide { opacity: 0; transition: opacity 2.6s ease .3s; }
+  body.ready #wide { opacity: 1; }
+  #topShot { opacity: 0; filter: blur(12px); }
+  /* lo zoom si attiva solo dopo il tocco */
+  body.zoomed #wide { opacity: 0; filter: blur(8px); transition: transform 3.8s var(--cam), filter 1.4s ease 2.3s, opacity 1.3s ease 2.5s; }
+  body.zoomed #topShot { opacity: 1; filter: none; transition: transform 2.2s var(--cam) 1.9s, opacity 1.4s ease 2.2s, filter 1.8s ease 2.2s; }
   /* sfondo dietro la vista dall'alto: la stessa scrivania, ingrandita e sfocata, riempie i lati */
   #backdrop { position: fixed; inset: -8%; z-index: 0; width: 116%; height: 116%; object-fit: cover; filter: blur(10px); opacity: 0; transition: opacity 1.6s ease 2.2s; }
   body.zoomed #backdrop { opacity: 1; }
   body.opened #topShot { opacity: 0; transition: opacity 1.2s ease; }
-  .hint { position: fixed; z-index: 25; left: 0; right: 0; bottom: 7vh; text-align: center; color: var(--ink); pointer-events: none; opacity: 0; transition: opacity 1.2s var(--ease); }
+  .hint { position: fixed; z-index: 25; left: 50%; bottom: 7vh; translate: -50% 0; text-align: center; color: var(--ink); pointer-events: none; white-space: nowrap;
+    padding: 14px 30px 13px; border-radius: 999px; background: rgb(255 253 250 / .78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 12px 34px rgb(40 30 20 / .18);
+    opacity: 0; transition: opacity 1.4s var(--ease) 2.2s, translate 1.4s var(--ease) 2.2s; }
   body.ready .hint { opacity: 1; }
-  .hint p { font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(20px, 2.2vw, 28px); animation: breathe 2.8s ease-in-out infinite; text-shadow: 0 0 18px #fff, 0 0 6px #fff; }
-  .hint small { display: block; margin-top: 6px; font-size: 14px; opacity: .8; text-shadow: 0 0 10px #fff; }
-  @keyframes breathe { 50% { opacity: .45; } }
-  body.zoomed .hint { opacity: 0; }
+  .hint p { font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(22px, 2.3vw, 28px); line-height: 1.15; animation: breathe 3s ease-in-out infinite; }
+  .hint small { display: block; margin-top: 4px; font-size: 13px; color: var(--mute); }
+  @keyframes breathe { 50% { opacity: .55; } }
+  body.zoomed .hint { opacity: 0; transition: opacity .6s ease; }
   body.gated { cursor: pointer; }
 
   .stage { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 76px 16px 84px; transition: opacity .6s var(--ease); }
@@ -191,7 +196,7 @@
 <img id="backdrop" src="foto/legno.webp" alt="">
 <img class="shot" id="wide" alt="Una scrivania luminosa con il libro dell'invito, un vaso di ortensie e le fedi">
 <img class="shot" id="topShot" src="foto/libro-alto.webp" alt="">
-<div class="hint"><p>Tocca per aprire l'invito</p><small>Alza il volume: c'è una canzone per te</small></div>
+<div class="hint"><p>Tocca il libro</p><small>per aprire l'invito, alza il volume</small></div>
 
 <nav class="nav" aria-label="Capitoli">
   <a class="mono" data-go="0">G &amp; M</a>
