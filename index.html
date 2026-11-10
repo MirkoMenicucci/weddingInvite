@@ -37,37 +37,21 @@
 
   /* ---------- scrivania, luce e libro ---------- */
   :root { --cam: cubic-bezier(.62, .02, .2, 1); --zoom: 3.4s; }
-  body { background: #120c08; }
-  .desk { position: fixed; inset: -20%; z-index: 0; background-color: #2a1a10;
-    background-image:
-      radial-gradient(ellipse 30% 34% at 50% 47%, rgb(255 205 150 / .42), rgb(255 190 130 / .12) 55%, transparent 75%),
-      radial-gradient(ellipse at 50% 50%, transparent 25%, rgb(8 5 3 / .88) 75%),
-      repeating-linear-gradient(180deg, transparent 0 238px, rgb(0 0 0 / .4) 238px 240px, rgb(255 220 180 / .06) 240px 241px),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.0035 .09' numOctaves='4' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='.34 0 0 0 .19 .21 0 0 0 .1 .12 0 0 0 .05 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='1200' height='800' filter='url(%23w)'/%3E%3C/svg%3E");
-    background-size: auto, auto, auto, 1200px 800px;
-    transition: transform var(--zoom) var(--cam), filter var(--zoom) var(--cam); }
-  .desk::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 26% 30% at 50% 46%, rgb(255 214 160 / .22), transparent 70%); animation: lamp 6s ease-in-out infinite alternate; }
-  @keyframes lamp { from { opacity: .55; } to { opacity: 1; } }
-  body.zoomed .desk { transform: scale(2.3); filter: blur(8px) brightness(.5); }
-
-  /* luce calda e polvere sopra la scena, sparisce quando la camera arriva sul libro */
-  .glow { position: fixed; inset: 0; z-index: 20; pointer-events: none; transition: opacity var(--zoom) var(--cam);
-    background: radial-gradient(ellipse 40% 48% at 50% 44%, rgb(255 214 160 / .14), transparent 70%), radial-gradient(ellipse at 50% 50%, transparent 40%, rgb(10 6 4 / .65)); }
-  body.zoomed .glow { opacity: 0; }
-  .glow i { position: absolute; border-radius: 50%; background: rgb(255 226 180 / .9); filter: blur(.6px); box-shadow: 0 0 6px rgb(255 214 160 / .8); animation: mote var(--t) ease-in-out infinite alternate; }
-  @keyframes mote { from { transform: translate(0, 0); opacity: .15; } 50% { opacity: .9; } to { transform: translate(var(--x), var(--y)); opacity: .2; } }
-  .hint { position: fixed; z-index: 25; left: 0; right: 0; bottom: 8vh; text-align: center; color: #f6e2c6; pointer-events: none; transition: opacity 1s var(--ease); }
+  body { background: #0d0907; }
+  /* scena 3D della scrivania (WebGL): dopo lo zoom resta dietro al libro, sfocata */
+  #scene { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; transition: filter 1.6s var(--ease); }
+  body.shown #scene { filter: blur(6px) brightness(.6); }
+  .hint { position: fixed; z-index: 25; left: 0; right: 0; bottom: 8vh; text-align: center; color: #f6e2c6; pointer-events: none; opacity: 0; transition: opacity 1.2s var(--ease); }
+  body.ready .hint { opacity: 1; }
   .hint p { font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(20px, 2.2vw, 28px); animation: breathe 2.8s ease-in-out infinite; text-shadow: 0 2px 20px rgb(0 0 0 / .6); }
   .hint small { display: block; margin-top: 6px; font-size: 14px; opacity: .7; }
   @keyframes breathe { 50% { opacity: .45; } }
   body.zoomed .hint { opacity: 0; }
   body.gated { cursor: pointer; }
 
-  .stage { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 76px 16px 84px; perspective: 1600px; }
+  .stage { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 76px 16px 84px; transition: opacity .6s var(--ease); }
   body.gated .stage { pointer-events: none; }
-  /* camera: il libro è appoggiato sulla scrivania, poi lo zoom lo porta a schermo intero */
-  .camera { transform: translateY(4vh) rotateX(36deg) rotateZ(-5deg) scale(.5); transition: transform var(--zoom) var(--cam); }
-  body.zoomed .camera { transform: none; }
+  body.gated:not(.shown) .stage { opacity: 0; }
   .book-wrap { position: relative; transition: transform 1.2s var(--ease); filter: drop-shadow(0 30px 40px rgb(0 0 0 / .45)) drop-shadow(0 6px 10px rgb(0 0 0 / .3)); }
   .book-wrap.closed-front { transform: translateX(-25%); }
   .book-wrap.closed-back { transform: translateX(25%); }
@@ -194,8 +178,7 @@
 </head>
 <body class="gated">
 
-<div class="desk" aria-hidden="true"></div>
-<div class="glow" id="glow" aria-hidden="true"></div>
+<canvas id="scene" aria-label="Il libro dell'invito appoggiato su una scrivania illuminata da una lampada"></canvas>
 <div class="hint"><p>Tocca per aprire l'invito</p><small>Alza il volume: c'è una canzone per te</small></div>
 
 <nav class="nav" aria-label="Capitoli">
@@ -322,13 +305,6 @@
     Object.assign(s.style, { left: rand(0, 100) + '%', top: rand(0, 50) + '%', '--t': rand(2, 5).toFixed(1) + 's', animationDelay: -rand(0, 5).toFixed(1) + 's' });
     starsBox.append(s);
   }
-  const glow = document.getElementById('glow');
-  for (let i = 0; i < 28; i++) {
-    const m = document.createElement('i'), size = rand(1.5, 3.5).toFixed(1) + 'px';
-    Object.assign(m.style, { width: size, height: size, left: rand(25, 75) + '%', top: rand(15, 80) + '%',
-      '--t': rand(7, 14).toFixed(1) + 's', '--x': rand(-60, 60).toFixed(0) + 'px', '--y': rand(-80, 20).toFixed(0) + 'px', animationDelay: -rand(0, 14).toFixed(1) + 's' });
-    glow.append(m);
-  }
 
   // ---------- conto alla rovescia ----------
   const target = new Date('2027-06-12T16:00:00');
@@ -378,6 +354,7 @@
   const pageH = spread ? Math.min(availH, availW / 2 / RATIO) : innerHeight;
   const pageW = spread ? Math.floor(pageH * RATIO) : innerWidth;
   document.getElementById('book').style.width = (spread ? pageW * 2 : pageW) + 'px';
+  window.bookGeom = { spread, pageW, pageH };   // la scena 3D usa queste misure per inquadrare la copertina
 
   const flip = new St.PageFlip(document.getElementById('book'), {
     width: pageW, height: Math.floor(pageH), size: 'fixed',
@@ -441,19 +418,21 @@
   }
   song.addEventListener('canplay', () => music.hidden = false, { once: true });
   song.addEventListener('error', () => music.remove());
-  // tocco ovunque: musica, zoom verso il libro, pausa sul libro chiuso, poi la copertina si apre da sola
+  // tocco ovunque: musica, la camera 3D scende sul libro, si passa al libro sfogliabile, pausa, poi la copertina si apre da sola
   let entered = false;
-  function enter() {
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  setTimeout(() => document.body.classList.add('ready'), 4000);   // se la scena 3D non parte, il suggerimento compare comunque
+  async function enter() {
     if (entered) return;
     entered = true;
     song.volume = 0;
     setPlaying(true, true);
     document.body.classList.add('zoomed');
-    const zoom = reduce ? 0 : 3400, hold = reduce ? 300 : 2200;
-    setTimeout(() => {
-      document.body.classList.remove('gated');
-      if (flip.getCurrentPageIndex() === 0) flip.flipNext();
-    }, zoom + hold);
+    if (window.scene3d) await window.scene3d.zoom(reduce);
+    document.body.classList.add('shown');
+    await wait(reduce ? 300 : 2200);
+    document.body.classList.remove('gated');
+    if (flip.getCurrentPageIndex() === 0) flip.flipNext();
   }
   document.addEventListener('click', () => { if (document.body.classList.contains('gated')) enter(); });
   addEventListener('keydown', e => { if (['Enter', ' '].includes(e.key) && document.body.classList.contains('gated')) { e.preventDefault(); enter(); } });
@@ -464,5 +443,9 @@
     else if (wasPlaying) song.play().catch(() => {});
   });
 </script>
+<script type="importmap">
+  { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+</script>
+<script type="module" src="scene.js"></script>
 </body>
 </html>
