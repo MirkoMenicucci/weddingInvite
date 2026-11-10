@@ -48,7 +48,7 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
-  html { background: #000; }
+  html { background: #000; background-position: center; background-size: cover; background-repeat: no-repeat; }
   body { color: var(--ink); font: 350 18px/1.65 'Fraunces', Georgia, serif; font-variation-settings: "SOFT" 50; -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none;
     background: #000; }
   img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; pointer-events: none; }
@@ -60,7 +60,19 @@
 
   /* ---------- scrivania fotografata: zoom dalla foto larga alla vista dall'alto del libro ---------- */
   :root { --cam: cubic-bezier(.62, .02, .2, 1); }
-  body { background: #000; }
+  body { background: #000; transition: background-color 1.2s ease; }
+  body.ready { background-color: transparent; }
+  html:has(body.ready) { background-image: url("foto/scrivania-telefono.webp"); }
+  @media (min-width: 800px) and (orientation: landscape) {
+    html:has(body.ready) { background-image: url("foto/scrivania.webp"); }
+  }
+  html:has(body.opened) { background-image: url("foto/legno.webp"); }
+  #edge-underlay { position: fixed; inset: 0; z-index: 0; background: #000 url("foto/scrivania-telefono.webp") center / cover no-repeat; opacity: 0; transition: opacity 0s 1.6s; }
+  @media (min-width: 800px) and (orientation: landscape) {
+    #edge-underlay { background-image: url("foto/scrivania.webp"); }
+  }
+  body.ready #edge-underlay { opacity: 1; }
+  body.opened #edge-underlay { background-image: url("foto/legno.webp"); }
   .shot { position: fixed; left: 0; top: 0; z-index: 0; width: auto; height: auto; max-width: none; object-fit: fill; transform-origin: 0 0; will-change: transform, opacity, filter; }
   /* all'apertura: schermo scuro, poi la stanza compare in dissolvenza (senza movimento) */
   #wide { opacity: 0; transition: opacity 1.2s ease .4s; z-index: 1; }
@@ -74,7 +86,7 @@
   body.zoomed #backdrop { opacity: 1; }
   body.opened #topShot { opacity: 0; transition: opacity 0s; }
   /* video di transizione: compare dopo la foto al tocco, poi la camera scende sul libro */
-  #film { position: fixed; inset: 0; z-index: 2; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .8s ease; pointer-events: none; }
+  #film { position: fixed; inset: 0; z-index: 2; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0s; pointer-events: none; }
   #film[hidden] { display: none; }
   body.filming #film { opacity: 1; }
   /* fine video: il libro sfogliabile sale in dissolvenza sopra il video che sta ancora finendo */
@@ -94,7 +106,7 @@
   body.zoomed .welcome { opacity: 0; transform: translateY(-20px); transition: opacity 1s ease, transform 1.2s var(--ease); }
   body.leaving .welcome { opacity: 0; transform: translateY(-20px); transition: opacity .8s ease, transform .8s var(--ease); }
   body.leaving .welcome::before { opacity: 0; transition: opacity .8s ease; }
-  .welcome-content { opacity: 0; transition: opacity .7s ease 1.7s; }
+  .welcome-content { opacity: 0; transition: opacity 1.2s ease .4s; }
   body.ready .welcome-content { opacity: 1; }
   body.leaving .welcome-content { opacity: 0; transition: opacity .4s ease; }
   .welcome-names { max-width: 100%; white-space: nowrap; font-family: 'Allura', cursive; font-style: normal; font-weight: 400; font-size: clamp(38px, 11.5vw, 88px); line-height: 1; letter-spacing: 0;
@@ -205,17 +217,12 @@
 
 
   /* ---------- comandi ---------- */
-  .nav { position: fixed; top: calc(18px + env(safe-area-inset-top)); left: 50%; translate: -50% 0; z-index: 30; display: flex; align-items: center; gap: clamp(14px, 2.6vw, 28px); padding: 9px 22px; border-radius: 999px; font-size: 16px; white-space: nowrap;
-    background: rgb(252 248 243 / .7); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 8px 28px rgb(60 40 40 / .1); }
-  .nav a { text-decoration: none; cursor: pointer; }
-  .nav a:hover { color: var(--rose); }
-  .nav .mono { font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: 19px; }
   .controls { position: fixed; bottom: calc(22px + env(safe-area-inset-bottom)); left: 50%; translate: -50% 0; z-index: 30; display: flex; align-items: center; gap: 16px; font-style: italic; font-size: 16px; color: var(--mute); white-space: nowrap; }
   .controls button { width: 42px; height: 42px; border-radius: 50%; border: 0; cursor: pointer; font: 400 22px/1 'Fraunces', serif; color: var(--ink); background: rgb(252 248 243 / .75); box-shadow: 0 6px 18px rgb(60 40 40 / .12); transition: transform .4s var(--ease), opacity .4s; }
   .controls button:hover { transform: scale(1.08); }
   .controls button:disabled { opacity: .3; cursor: default; transform: none; }
-  body.gated .nav, body.gated .controls, body.gated .music { opacity: 0; pointer-events: none; }
-  .nav, .controls, .music { transition: opacity 1.2s var(--ease) 1s; }
+  body.gated .controls, body.gated .music { opacity: 0; pointer-events: none; }
+  .controls, .music { transition: opacity 1.2s var(--ease) 1s; }
 
   .music { position: fixed; left: calc(20px + env(safe-area-inset-left)); bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 30; width: 48px; height: 48px; border-radius: 50%; border: 0; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; gap: 3px; padding-bottom: 16px;
     background: rgb(252 248 243 / .8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgb(60 40 40 / .15); }
@@ -227,7 +234,6 @@
   @keyframes eq { from { transform: scaleY(.3); } }
 
   @media (max-width: 760px) {
-    .nav { top: calc(12px + env(safe-area-inset-top)); padding: 8px 18px; font-size: 15px; gap: 14px; }
     .stage { padding: 64px 10px 80px; }
     .controls { bottom: calc(18px + env(safe-area-inset-bottom)); }
   }
@@ -247,6 +253,7 @@
 </head>
 <body class="gated">
 
+<div id="edge-underlay" aria-hidden="true"></div>
 <img id="backdrop" src="foto/legno.webp" alt="">
 <img class="shot" id="wide" alt="Una scrivania luminosa con il libro dell'invito, un vaso di ortensie e le fedi">
 <img class="shot" id="topShot" alt="">
@@ -258,13 +265,6 @@
     <p class="welcome-cta">alza il volume per l'esperienza completa</p>
   </div>
 </div>
-
-<nav class="nav" aria-label="Capitoli">
-  <a class="mono" data-go="0">G &amp; M</a>
-  <a data-go="3">La storia</a>
-  <a data-go="6">Il giorno</a>
-  <a data-go="9">Regali</a>
-</nav>
 
 <main class="stage">
   <div class="camera">
@@ -554,15 +554,20 @@
   // ---------- ingresso e musica ----------
   const song = document.getElementById('song'), nature = document.getElementById('nature'), music = document.getElementById('music');
   let playing = false, fadeTimer, fadeStartTimer;
-  nature.volume = 1;
-  nature.play().catch(() => {});
-  function fadeTo(v, ms) {
+  song.volume = 0;
+  nature.volume = 0;
+  function fadeTo(songTarget, natureTarget, ms) {
     clearInterval(fadeTimer);
-    const from = song.volume, t0 = performance.now();
+    const songStart = song.volume, natureStart = nature.volume, t0 = performance.now();
     fadeTimer = setInterval(() => {
       const k = Math.min(1, (performance.now() - t0) / ms);
-      song.volume = from + (v - from) * k;
-      if (k === 1) { clearInterval(fadeTimer); if (v === 0) song.pause(); }
+      song.volume = songStart + (songTarget - songStart) * k;
+      nature.volume = natureStart + (natureTarget - natureStart) * k;
+      if (k === 1) {
+        clearInterval(fadeTimer);
+        if (songTarget === 0) song.pause();
+        if (natureTarget === 0) nature.pause();
+      }
     }, 40);
   }
   function setPlaying(on, first, startDelay = 0) {
@@ -570,12 +575,14 @@
     music.classList.toggle('paused', !on);
     music.setAttribute('aria-label', on ? 'Metti in pausa la musica' : 'Riprendi la musica');
     clearTimeout(fadeStartTimer);
-    if (on) song.play().then(() => {
-      const startFade = () => fadeTo(.6, first ? 3500 : 1200);
-      if (startDelay) fadeStartTimer = setTimeout(startFade, startDelay);
-      else startFade();
-    }).catch(() => {});
-    else fadeTo(0, 800);
+    if (on) {
+      const startAudio = audio => audio.play().catch(() => {});
+      Promise.all([startAudio(song), startAudio(nature)]).then(() => {
+        const startFade = () => fadeTo(.6, .9, first ? 3500 : 1200);
+        if (startDelay) fadeStartTimer = setTimeout(startFade, startDelay);
+        else startFade();
+      });
+    } else fadeTo(0, 0, 800);
   }
   song.addEventListener('canplay', () => music.hidden = false, { once: true });
   song.addEventListener('error', () => music.remove());
@@ -643,13 +650,18 @@
     if (entered) return;
     entered = true;
     song.volume = 0;
-    if (nature.paused) nature.play().catch(() => {});
     setPlaying(true, true, reduce ? 50 : 850);
     document.body.classList.add('leaving');
     await wait(reduce ? 50 : 850);
     if (useFilm) {
-      // il libro sfogliabile compare in dissolvenza mentre il video sta ancora finendo: nessuno scatto
-      document.body.classList.add('zoomed', 'filming');
+      document.body.classList.add('filming');
+      const firstFrame = new Promise(resolve => {
+        if (film.requestVideoFrameCallback) film.requestVideoFrameCallback(resolve);
+        else film.addEventListener('playing', () => requestAnimationFrame(resolve), { once: true });
+      });
+      film.play().catch(() => {});
+      await Promise.race([firstFrame, wait(500)]);
+      document.body.classList.add('zoomed');
       const lead = 0.9;   // secondi prima della fine in cui parte la dissolvenza
       const nearEnd = new Promise(r => {
         const check = () => { if (film.duration && film.currentTime >= film.duration - lead) { film.removeEventListener('timeupdate', check); r(); } };
@@ -657,7 +669,6 @@
         film.addEventListener('ended', r, { once: true });
         setTimeout(r, ((film.duration || 6) + 1.5) * 1000);
       });
-      film.play().catch(() => {});
       await nearEnd;
       document.body.classList.add('shown');
       await wait(lead * 1000 + 300);
@@ -685,8 +696,13 @@
   music.onclick = () => setPlaying(!playing);
   let wasPlaying = false;
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { wasPlaying = playing; if (playing) song.pause(); }
-    else if (wasPlaying) song.play().catch(() => {});
+    if (document.hidden) {
+      wasPlaying = playing;
+      if (playing) { song.pause(); nature.pause(); }
+    } else if (wasPlaying) {
+      song.play().catch(() => {});
+      nature.play().catch(() => {});
+    }
   });
 </script>
 </body>
