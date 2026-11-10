@@ -10,167 +10,141 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..600,0..100,0..1;1,9..144,300..600,0..100,0..1&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink: #2b2a3a;        /* blu notte morbido */
-    --paper: #fbf7f4;      /* bianco velo, appena rosato */
-    --blush: #f4e4dd;      /* rosa cipria del cielo al tramonto */
-    --rose: #c48a78;       /* rosa oro */
-    --hydrangea: #8fa6cf;  /* ortensie */
+    --ink: #2b2a3a;
+    --paper: #fcf8f3;
+    --blush: #f4e4dd;
+    --rose: #c48a78;
+    --gold: #d9b779;
+    --hydrangea: #8fa6cf;
+    --cloth: #2c3150;
     --mute: #6e6a78;
     --dusk: linear-gradient(170deg, #232845 0%, #4b4f7c 38%, #a88ea6 72%, #efcfc0 100%);
-    --r: clamp(22px, 3vw, 40px);
-    --pad: clamp(22px, 5vw, 80px);
     --ease: cubic-bezier(.22, .9, .25, 1);
+    --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .32 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; overflow: hidden; }
-  body { background: #e4dbd5; color: var(--ink); font: 350 19px/1.7 'Fraunces', Georgia, serif; font-variation-settings: "SOFT" 50; -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none; }
-  img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; }
+  body { color: var(--ink); font: 350 18px/1.65 'Fraunces', Georgia, serif; font-variation-settings: "SOFT" 50; -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none;
+    background: radial-gradient(ellipse at 50% 40%, #f6ebe4 0%, #e8d9d0 55%, #cdbcb4 100%); }
+  img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; pointer-events: none; }
   a { color: inherit; }
   :focus-visible { outline: 2px solid var(--rose); outline-offset: 4px; border-radius: 6px; }
   .display, h2 { font-style: italic; font-weight: 300; font-variation-settings: "SOFT" 100, "WONK" 1; letter-spacing: -.02em; }
-  h2 { font-size: clamp(44px, 5.4vw, 84px); line-height: 1.05; }
   h2, .display, p { text-wrap: balance; }
   .muted { color: var(--mute); }
 
-  /* ---------- il libro ---------- */
-  .book { position: fixed; inset: 0; perspective: 2400px; overflow: hidden; }
-  .page { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 0 50%; visibility: hidden; }
-  .page.current, .page.under, .page.moving { visibility: visible; }
-  .page.under { z-index: 1; } .page.current { z-index: 2; } .page.moving { z-index: 3; }
-  .face, .back { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-  .face { background: var(--paper); box-shadow: inset 14px 0 24px -18px rgb(43 42 58 / .35); }
-  .face::before { content: ""; position: absolute; inset: 0; z-index: 8; pointer-events: none; background: var(--ink); opacity: var(--shade, 0); }
-  .face::after { content: ""; position: absolute; inset: 0; z-index: 9; pointer-events: none; opacity: var(--light, 0);
-    background: linear-gradient(to left, rgb(43 42 58 / .3), rgb(43 42 58 / 0) 30%, rgb(255 255 255 / .35) 65%, rgb(255 255 255 / 0)); }
-  .back { transform: rotateY(180deg); background: linear-gradient(to right, #e6dbd3, var(--paper) 22%, var(--paper) 80%, #ece2db); }
-  .content { position: relative; height: 100%; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; scrollbar-width: none; }
-  .content::-webkit-scrollbar { display: none; }
-  .inner { min-height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: clamp(86px, 12vh, 120px) var(--pad) clamp(70px, 10vh, 100px); }
-  .framed { height: 100%; padding: 12px; }
-  .folio { position: absolute; left: 0; right: 0; bottom: 18px; z-index: 2; text-align: center; font-style: italic; font-size: 15px; color: var(--mute); pointer-events: none; }
-  .page.dark .folio { bottom: 26px; color: rgb(255 255 255 / .8); }
+  /* ---------- tavolo e libro ---------- */
+  .stage { position: fixed; inset: 0; display: grid; place-items: center; padding: 76px 16px 84px; }
+  .book-wrap { position: relative; transition: transform 1.2s var(--ease); filter: drop-shadow(0 30px 40px rgb(60 40 40 / .28)) drop-shadow(0 6px 10px rgb(60 40 40 / .15)); }
+  .book-wrap.closed-front { transform: translateX(-25%); }
+  .book-wrap.closed-back { transform: translateX(25%); }
+  .enter-anim { animation: bookIn 1.8s var(--ease) both; }
+  @keyframes bookIn { from { opacity: 0; transform: translateY(50px) scale(.92); filter: blur(10px); } }
+  body.gated .book-wrap { opacity: 0; }
 
-  /* ---------- angolo piegato per sfogliare ---------- */
-  .corner { position: fixed; right: 0; bottom: 0; z-index: 25; width: 64px; height: 64px; border: 0; cursor: pointer; border-top-left-radius: 14px;
-    background: linear-gradient(135deg, transparent 50%, rgb(43 42 58 / .22) 50%, #efe6df 53%, #fffdfb 74%, #e6dad1 100%);
-    filter: drop-shadow(-5px -5px 8px rgb(43 42 58 / .14)); transition: width .5s var(--ease), height .5s var(--ease), opacity .6s; animation: peel 3.4s ease-in-out infinite; }
-  @keyframes peel { 0%, 68%, 100% { width: 64px; height: 64px; } 80% { width: 94px; height: 94px; } }
-  .corner:hover { width: 100px; height: 100px; animation: none; }
-  .corner.hide, body.gated .corner { opacity: 0; pointer-events: none; }
-  .hint { position: fixed; right: 80px; bottom: 22px; z-index: 25; font-style: italic; color: #fff; font-size: 17px; pointer-events: none; text-shadow: 0 2px 12px rgb(0 0 0 / .3);
-    opacity: 0; animation: fade 1.6s 3.4s forwards; transition: opacity .6s; }
-  .hint.hide { opacity: 0 !important; animation: none; }
+  /* ---------- pagine di carta ---------- */
+  .page { container-type: inline-size; background: var(--paper) var(--noise); overflow: hidden; }
+  .pg { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 11cqw 9cqw; font-size: clamp(14px, 3.4cqw, 20px); }
+  .page.left .pg::after, .page.right .pg::after { content: ""; position: absolute; top: 0; bottom: 0; width: 12%; pointer-events: none; }
+  .page.left .pg::after { right: 0; background: linear-gradient(to left, rgb(60 40 40 / .16), transparent); }
+  .page.right .pg::after { left: 0; background: linear-gradient(to right, rgb(60 40 40 / .16), transparent); }
+  .folio { position: absolute; bottom: 4.5cqw; font-style: italic; font-size: clamp(11px, 2.6cqw, 15px); color: var(--mute); }
+  .page.left .folio { left: 7cqw; } .page.right .folio { right: 7cqw; }
+  h2 { font-size: clamp(30px, 9cqw, 60px); line-height: 1.05; margin-bottom: 5cqw; }
 
-  /* ---------- navigazione a pillola ---------- */
-  .nav { position: fixed; top: 22px; left: 50%; translate: -50% 0; z-index: 30; display: flex; align-items: center; gap: clamp(16px, 2.6vw, 30px); padding: 10px 24px; border-radius: 999px; color: #fff; font-size: 16px; white-space: nowrap;
-    transition: background .7s var(--ease), color .7s var(--ease), box-shadow .7s var(--ease); opacity: 0; animation: fade 1.6s 2.8s forwards; }
-  .nav a { text-decoration: none; cursor: pointer; }
-  .nav a:hover { color: var(--rose); }
-  .nav .mono { font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: 20px; }
-  .nav.light { background: rgb(251 247 244 / .72); color: var(--ink); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 10px 34px rgb(43 42 58 / .1); }
-  @keyframes fade { to { opacity: 1; } }
+  /* ---------- copertine rigide ---------- */
+  .page.hard { background: var(--cloth) var(--noise); color: var(--gold); }
+  .cover .pg { justify-content: flex-start; padding-top: 12cqw; }
+  .cover .frame-line { position: absolute; inset: 4.5cqw; border: 1px solid rgb(217 183 121 / .45); border-radius: 3cqw; pointer-events: none; }
+  .cover .window { width: 64cqw; aspect-ratio: 3 / 3.6; border-radius: 999px 999px 4cqw 4cqw; overflow: hidden; box-shadow: inset 0 0 0 1px rgb(217 183 121 / .6), 0 2cqw 5cqw rgb(0 0 0 / .35); }
+  .cover .window img { object-position: 56% 30%; }
+  .foil { margin-top: 8cqw; font-size: clamp(36px, 12cqw, 80px); line-height: .95;
+    background: linear-gradient(100deg, #b48e52 25%, #fff1cf 48%, #b48e52 70%) 0 0 / 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shine 5s ease-in-out infinite; }
+  .foil .amp { display: block; font-size: .45em; margin: .1em 0; }
+  @keyframes shine { 0%, 40% { background-position: 100% 0; } 100% { background-position: -50% 0; } }
+  .cover .date { margin-top: 5cqw; font-size: clamp(13px, 3.6cqw, 20px); color: rgb(217 183 121 / .9); }
+  .back-cover .mono { font-size: clamp(40px, 14cqw, 90px); }
 
-  /* ---------- copertina ---------- */
-  .frame { position: relative; height: 100%; border-radius: var(--r); overflow: hidden; background: var(--ink); animation: iris 2.6s var(--ease) both; }
-  @keyframes iris { from { clip-path: inset(20% 24% round 400px); } to { clip-path: inset(0 round var(--r)); } }
-  .hero-media { position: absolute; inset: 0; }
-  .hero-media img { object-position: 58% 45%; animation: focusIn 3.2s var(--ease) both; }
-  @keyframes focusIn { from { transform: scale(1.3); filter: blur(16px) brightness(.6); } }
-  .frame::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgb(35 30 50 / .78), rgb(35 30 50 / 0) 58%), radial-gradient(ellipse at center, transparent 55%, rgb(20 18 30 / .35)); }
-  .bokeh span { position: absolute; z-index: 1; border-radius: 50%; background: radial-gradient(circle, rgb(255 216 176 / .55), rgb(255 216 176 / 0) 70%); opacity: 0;
-    animation: glow 3s var(--d) forwards, drift var(--t) ease-in-out infinite alternate; }
-  @keyframes glow { to { opacity: var(--o); } }
-  @keyframes drift { to { transform: translate(var(--x), var(--y)); } }
-  .hero-text { position: absolute; z-index: 2; left: 0; right: 0; bottom: clamp(60px, 10vh, 100px); text-align: center; color: #fff; padding: 0 20px; }
-  .names { font-size: clamp(70px, 11vw, 170px); line-height: .92; text-shadow: 0 4px 40px rgb(0 0 0 / .25); }
-  .names > span { display: block; }
-  .names .amp { font-size: .38em; color: #f3cdbd; margin: .15em 0 .05em; }
-  .ch { display: inline-block; opacity: 0; filter: blur(14px); transform: translateY(.25em); animation: ch 1.8s var(--ease) forwards; animation-delay: calc(1.3s + var(--i) * 70ms); }
-  @keyframes ch { to { opacity: 1; filter: blur(0); transform: none; } }
-  .hero-date { margin-top: 26px; font-size: clamp(17px, 1.4vw, 20px); line-height: 1.5; opacity: 0; animation: fade 1.8s 2.6s forwards; }
+  /* ---------- risguardo ---------- */
+  .endpaper { background: var(--blush) var(--noise); }
+  .endpaper .pg { background-image: radial-gradient(circle at 50% 50%, rgb(196 138 120 / .12) 1.4px, transparent 1.6px); background-size: 7cqw 7cqw; }
+  .seal { width: 34cqw; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgb(196 138 120 / .5); outline: 1px solid rgb(196 138 120 / .25); outline-offset: 1.6cqw; background: var(--blush); font-size: clamp(26px, 9cqw, 58px); color: var(--rose); }
+  .endpaper small { margin-top: 7cqw; font-style: italic; color: var(--rose); }
 
-  /* ---------- comparse quando si apre la pagina ---------- */
-  .w { display: inline-block; opacity: .1; filter: blur(8px); transform: translateY(.2em); transition: opacity 1.3s var(--ease), filter 1.3s var(--ease), transform 1.3s var(--ease); transition-delay: calc(var(--i) * 55ms + .2s); }
-  .in .w { opacity: 1; filter: none; transform: none; }
-  .fade-up { opacity: 0; transform: translateY(36px); filter: blur(6px); transition: opacity 1.4s var(--ease), transform 1.6s var(--ease), filter 1.4s var(--ease); transition-delay: calc(var(--i, 0) * 140ms + .35s); }
-  .fade-up.in { opacity: 1; transform: none; filter: none; }
+  /* ---------- contenuti ---------- */
+  .lead p { font-size: clamp(22px, 6.6cqw, 42px); line-height: 1.3; }
+  .photo-page .pg { padding: 7cqw; }
+  .arch { width: 100%; height: 100%; border-radius: 999px 999px 4cqw 4cqw; overflow: hidden; }
+  .rounded { width: 100%; height: 100%; border-radius: 4cqw; overflow: hidden; position: relative; }
+  .rounded figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 18cqw 7cqw 7cqw; color: #fff; font-size: clamp(16px, 4.6cqw, 28px); line-height: 1.3; background: linear-gradient(to top, rgb(35 30 50 / .65), transparent); }
+  .photo-page img { transform: scale(1.15); transition: transform 6s var(--ease); }
+  .photo-page.in img { transform: none; }
+  .story p { text-align: left; max-width: 34em; }
+  .story p + p { margin-top: .9em; }
 
-  /* ---------- invito ---------- */
-  .lead p { font-size: clamp(30px, 3.6vw, 56px); line-height: 1.32; max-width: 22ch; }
-
-  /* ---------- storia ---------- */
-  .story { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 100px); align-items: center; width: 100%; max-width: 1200px; text-align: left; }
-  .story h2 { margin-bottom: 26px; }
-  .story p { max-width: 40ch; }
-  .story p + p { margin-top: 1em; }
-  .arch { position: relative; justify-self: center; height: min(72vh, 680px); aspect-ratio: 3 / 4.1; border-radius: 999px 999px var(--r) var(--r); overflow: hidden; }
-  .arch img { transform: scale(1.2); transition: transform 7s var(--ease); }
-  .arch.in img { transform: none; }
-
-  /* ---------- conto alla rovescia ---------- */
-  .count-card { position: relative; height: 100%; border-radius: var(--r); background: var(--dusk); color: #fff; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 24px; }
-  .count-card h2 { position: relative; margin-bottom: clamp(36px, 5vw, 64px); text-shadow: 0 2px 30px rgb(35 40 69 / .3); }
-  .stars i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; animation: twinkle var(--t) ease-in-out infinite alternate; }
+  .count-page { background: var(--dusk); color: #fff; }
+  .count-page .page-stars i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; animation: twinkle var(--t) ease-in-out infinite alternate; }
   @keyframes twinkle { from { opacity: .1; } to { opacity: .9; } }
-  .timer { position: relative; display: flex; justify-content: center; gap: clamp(16px, 5vw, 80px); }
+  .count-page h2 { position: relative; text-shadow: 0 2px 20px rgb(35 40 69 / .3); }
+  .timer { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 6cqw 12cqw; }
   .timer div { display: flex; flex-direction: column; align-items: center; }
-  .timer b { display: block; overflow: hidden; font-style: italic; font-weight: 300; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(50px, 9vw, 140px); line-height: 1.05;
-    font-variant-numeric: lining-nums tabular-nums; text-shadow: 0 4px 30px rgb(35 40 69 / .35); }
+  .timer b { display: block; overflow: hidden; font-style: italic; font-weight: 300; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(34px, 14cqw, 88px); line-height: 1.05; font-variant-numeric: lining-nums tabular-nums; text-shadow: 0 4px 24px rgb(35 40 69 / .35); }
   .timer b i { display: inline-block; font-style: inherit; animation: tickIn .8s var(--ease); }
   @keyframes tickIn { from { opacity: 0; transform: translateY(.35em); filter: blur(8px); } }
-  .timer span { margin-top: 8px; font-size: clamp(14px, 1.3vw, 18px); color: rgb(255 255 255 / .85); }
+  .timer span { font-size: clamp(12px, 3cqw, 17px); color: rgb(255 255 255 / .85); }
 
-  /* ---------- programma ---------- */
-  .day { width: 100%; max-width: 900px; }
-  .day h2 { margin-bottom: clamp(36px, 6vh, 70px); }
-  .schedule { position: relative; list-style: none; text-align: left; --col: 30%; --gutter: 64px; }
-  .line { position: absolute; top: 10px; bottom: 30px; left: calc(var(--col) + var(--gutter) / 2); width: 2px; translate: -50% 0; border-radius: 2px; background: rgb(43 42 58 / .08); }
-  .line i { display: block; width: 100%; height: 0; border-radius: 2px; background: linear-gradient(var(--hydrangea), var(--rose)); transition: height 2.6s var(--ease) .5s; }
-  .schedule.in .line i { height: 100%; }
-  .schedule li { position: relative; display: grid; grid-template-columns: var(--col) 1fr; column-gap: var(--gutter); padding-bottom: clamp(28px, 5vh, 48px); }
-  .schedule li::before { content: ""; position: absolute; left: calc(var(--col) + var(--gutter) / 2); top: .9em; width: 14px; height: 14px; translate: -50% 0; border-radius: 50%; background: var(--paper); border: 2px solid var(--hydrangea); transition: background 1s, border-color 1s; transition-delay: calc(var(--i) * 500ms + .8s); }
-  .schedule li.in::before { background: var(--rose); border-color: var(--rose); }
-  .schedule time { text-align: right; font-style: italic; font-weight: 300; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(36px, 4.2vw, 60px); line-height: 1; color: var(--rose); }
-  .schedule h3 { font-weight: 400; font-size: clamp(23px, 2.2vw, 30px); line-height: 1.25; margin-bottom: 4px; }
-  .schedule p { font-size: 17px; }
-  .schedule a { display: inline-block; margin-top: 8px; font-size: 17px; color: var(--ink); text-decoration-color: var(--rose); text-underline-offset: 6px; }
+  .schedule { list-style: none; text-align: left; width: 100%; position: relative; padding-left: 7cqw; }
+  .schedule::before { content: ""; position: absolute; left: 1.5cqw; top: 1em; bottom: 1em; width: 2px; border-radius: 2px; background: linear-gradient(var(--hydrangea), var(--rose)); transform: scaleY(0); transform-origin: top; transition: transform 2.4s var(--ease) .5s; }
+  .in .schedule::before { transform: none; }
+  .schedule li { position: relative; padding-bottom: 4.6cqw; }
+  .schedule li::before { content: ""; position: absolute; left: -7cqw; top: .55em; width: 2.6cqw; height: 2.6cqw; margin-left: .4cqw; border-radius: 50%; background: var(--rose); }
+  .schedule time { font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; color: var(--rose); font-size: 1.5em; margin-right: .4em; }
+  .schedule h3 { display: inline; font-weight: 450; font-size: 1.15em; }
+  .schedule p { font-size: .92em; }
+  .schedule a { font-size: .92em; text-decoration-color: var(--rose); text-underline-offset: 4px; }
 
-  /* ---------- foto della sala ---------- */
-  .wide-frame { position: relative; height: 100%; border-radius: var(--r); overflow: hidden; clip-path: inset(8% 6% round 200px); transition: clip-path 2.2s var(--ease) .2s; }
-  .wide-frame.in { clip-path: inset(0 round var(--r)); }
-  .wide-frame img { object-position: 50% 62%; transform: scale(1.18); transition: transform 9s var(--ease); }
-  .wide-frame.in img { transform: none; }
-  .wide-frame::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgb(35 30 50 / .6), transparent 45%); }
-  .wide-frame figcaption { position: absolute; z-index: 1; left: 0; right: 0; bottom: clamp(60px, 10vh, 90px); padding: 0 24px; text-align: center; color: #fff; font-size: clamp(24px, 2.4vw, 34px); line-height: 1.35; }
-
-  /* ---------- dress code ---------- */
-  .dress p { max-width: 40ch; margin-top: 22px; }
-  .swatches { display: flex; justify-content: center; flex-wrap: wrap; gap: clamp(20px, 4vw, 44px); list-style: none; margin-top: 44px; font-size: 16px; }
+  .swatches { display: flex; justify-content: center; gap: 5cqw; list-style: none; margin-top: 7cqw; font-size: .85em; }
   .swatches li { opacity: 0; transform: scale(.6); transition: opacity 1.2s var(--ease), transform 1.4s var(--ease); transition-delay: calc(var(--i) * 120ms + .6s); }
-  .swatches.in li { opacity: 1; transform: none; }
-  .swatches li::before { content: ""; display: block; width: 76px; height: 76px; margin: 0 auto 12px; border-radius: 50%; background: var(--c); box-shadow: 0 12px 30px -10px var(--c); animation: bob 5s ease-in-out infinite alternate; animation-delay: calc(var(--i) * -1.2s); }
-  @keyframes bob { to { transform: translateY(-8px); } }
+  .in .swatches li { opacity: 1; transform: none; }
+  .swatches li::before { content: ""; display: block; width: 13cqw; height: 13cqw; margin: 0 auto 2cqw; border-radius: 50%; background: var(--c); box-shadow: 0 2cqw 5cqw -2cqw var(--c); }
+  .dress p { margin-top: 1em; }
 
-  /* ---------- regali ---------- */
-  .gift-card { width: 100%; max-width: 660px; background: var(--blush); border-radius: var(--r); padding: clamp(40px, 7vh, 80px) clamp(22px, 5vw, 64px); }
-  .gift-card p { max-width: 40ch; margin: 20px auto 0; }
-  .iban { margin-top: 30px !important; white-space: nowrap; font-size: clamp(16px, 4.2vw, 26px); letter-spacing: .03em; font-variant-numeric: lining-nums tabular-nums; }
-  .owner { margin-top: 4px !important; font-size: 16px; }
-  .btn { margin-top: 26px; font: inherit; font-size: 17px; color: #fff; background: var(--rose); border: 0; border-radius: 999px; padding: 14px 32px; cursor: pointer; box-shadow: 0 10px 26px -10px var(--rose); transition: transform .5s var(--ease), box-shadow .5s var(--ease); }
-  .btn:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -10px var(--rose); }
+  .gift p + p { margin-top: .8em; }
+  .iban { margin-top: 6cqw !important; white-space: nowrap; font-size: clamp(13px, 4cqw, 22px); letter-spacing: .03em; font-variant-numeric: lining-nums tabular-nums; }
+  .owner { margin-top: .2em !important; font-size: .85em; }
+  .btn { margin-top: 6cqw; font: inherit; font-size: .95em; color: #fff; background: var(--rose); border: 0; border-radius: 999px; padding: .75em 1.8em; cursor: pointer; box-shadow: 0 10px 22px -10px var(--rose); transition: transform .5s var(--ease); }
+  .btn:hover { transform: translateY(-2px); }
   .btn.ghost { color: var(--ink); background: transparent; border: 1px solid rgb(43 42 58 / .25); box-shadow: none; }
+  .end p { font-size: clamp(34px, 11cqw, 72px); line-height: 1.05; }
+  .end small { margin-top: 6cqw; color: var(--mute); }
 
-  /* ---------- chiusura ---------- */
-  .end p { font-size: clamp(54px, 9vw, 140px); line-height: 1; }
-  .end small { display: block; margin-top: 36px; font-size: 18px; color: var(--mute); }
+  /* ---------- comparse quando si apre la pagina ---------- */
+  .w { display: inline-block; opacity: .1; filter: blur(6px); transform: translateY(.2em); transition: opacity 1.3s var(--ease), filter 1.3s var(--ease), transform 1.3s var(--ease); transition-delay: calc(var(--i) * 50ms + .4s); }
+  .in .w { opacity: 1; filter: none; transform: none; }
+  .fade-up { opacity: 0; transform: translateY(5cqw); filter: blur(5px); transition: opacity 1.3s var(--ease), transform 1.5s var(--ease), filter 1.3s var(--ease); transition-delay: calc(var(--i, 0) * 140ms + .5s); }
+  .in .fade-up { opacity: 1; transform: none; filter: none; }
+
+  /* ---------- comandi ---------- */
+  .nav { position: fixed; top: 18px; left: 50%; translate: -50% 0; z-index: 30; display: flex; align-items: center; gap: clamp(14px, 2.6vw, 28px); padding: 9px 22px; border-radius: 999px; font-size: 16px; white-space: nowrap;
+    background: rgb(252 248 243 / .7); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 8px 28px rgb(60 40 40 / .1); }
+  .nav a { text-decoration: none; cursor: pointer; }
+  .nav a:hover { color: var(--rose); }
+  .nav .mono { font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: 19px; }
+  .controls { position: fixed; bottom: 22px; left: 50%; translate: -50% 0; z-index: 30; display: flex; align-items: center; gap: 16px; font-style: italic; font-size: 16px; color: var(--mute); white-space: nowrap; }
+  .controls button { width: 42px; height: 42px; border-radius: 50%; border: 0; cursor: pointer; font: 400 22px/1 'Fraunces', serif; color: var(--ink); background: rgb(252 248 243 / .75); box-shadow: 0 6px 18px rgb(60 40 40 / .12); transition: transform .4s var(--ease), opacity .4s; }
+  .controls button:hover { transform: scale(1.08); }
+  .controls button:disabled { opacity: .3; cursor: default; transform: none; }
+  body.gated .nav, body.gated .controls { opacity: 0; }
+  .nav, .controls { transition: opacity 1.2s var(--ease) 1s; }
 
   /* ---------- ingresso con musica ---------- */
-  body.gated .frame, body.gated .hero-media img, body.gated .ch, body.gated .hero-date, body.gated .nav, body.gated .bokeh span, body.gated .hint { animation-play-state: paused; }
   .gate { position: fixed; inset: 0; z-index: 50; display: grid; place-content: center; justify-items: center; padding: 24px; text-align: center; color: #fff; background: var(--dusk);
     transition: opacity 1.4s var(--ease), filter 1.4s var(--ease), transform 1.8s var(--ease); }
   .gate.out { opacity: 0; filter: blur(12px); transform: scale(1.06); pointer-events: none; }
   .gate > *:not(.stars) { position: relative; opacity: 0; animation: appear 2s var(--ease) forwards; }
   @keyframes appear { from { opacity: 0; filter: blur(12px); } to { opacity: 1; filter: none; } }
+  .stars i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; animation: twinkle var(--t) ease-in-out infinite alternate; }
   .gate-names { font-size: clamp(52px, 9vw, 120px); line-height: 1; animation-delay: .3s !important; }
   .gate-date { margin-top: 14px; font-size: 18px; animation-delay: .7s !important; }
   .enter { margin-top: 48px; width: 132px; height: 132px; border-radius: 50%; border: 1px solid rgb(255 255 255 / .55); background: rgb(255 255 255 / .08); color: #fff; font: inherit; font-size: 18px; line-height: 1.3; cursor: pointer;
@@ -180,37 +154,23 @@
   .enter:hover { transform: scale(1.06); background: rgb(255 255 255 / .16); }
   .gate small { margin-top: 22px; font-size: 15px; color: rgb(255 255 255 / .75); animation-delay: 1.4s !important; }
 
-  .music { position: fixed; left: 20px; bottom: 20px; z-index: 25; width: 52px; height: 52px; border-radius: 50%; border: 0; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; gap: 3px; padding-bottom: 17px;
-    background: rgb(251 247 244 / .8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgb(43 42 58 / .15); }
+  .music { position: fixed; left: 20px; bottom: 20px; z-index: 30; width: 48px; height: 48px; border-radius: 50%; border: 0; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; gap: 3px; padding-bottom: 16px;
+    background: rgb(252 248 243 / .8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgb(60 40 40 / .15); }
   .music[hidden] { display: none; }
-  .music span { width: 3px; height: 16px; border-radius: 2px; background: var(--rose); transform-origin: bottom; animation: eq .9s ease-in-out infinite alternate; }
+  .music span { width: 3px; height: 15px; border-radius: 2px; background: var(--rose); transform-origin: bottom; animation: eq .9s ease-in-out infinite alternate; }
   .music span:nth-child(2) { animation-delay: -.4s; }
   .music span:nth-child(3) { animation-delay: -.7s; }
   .music.paused span { animation: none; transform: scaleY(.3); }
   @keyframes eq { from { transform: scaleY(.3); } }
 
-  /* ---------- telefono ---------- */
   @media (max-width: 760px) {
-    .nav { top: 14px; padding: 9px 18px; font-size: 15px; gap: 16px; }
-    .nav .mono { font-size: 18px; }
-    .framed { padding: 8px; }
-    .story { grid-template-columns: 1fr; text-align: center; gap: 28px; }
-    .story p { margin-left: auto; margin-right: auto; }
-    body { font-size: 17px; }
-    .inner { padding-bottom: 100px; }
-    .arch { height: 34vh; }
-    .schedule { --col: 0px; --gutter: 0px; padding-left: 34px; }
-    .schedule li { grid-template-columns: 1fr; row-gap: 6px; }
-    .schedule li::before { left: -26px; top: .55em; }
-    .line { left: 8px; }
-    .schedule time { text-align: left; }
-    .hint { right: 72px; bottom: 20px; font-size: 15px; }
+    .nav { top: 12px; padding: 8px 18px; font-size: 15px; gap: 14px; }
+    .stage { padding: 64px 10px 80px; }
+    .controls { bottom: 18px; }
   }
-
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0s !important; transition: none !important; }
     .w, .fade-up, .swatches li { opacity: 1 !important; filter: none !important; transform: none !important; }
-    .wide-frame { clip-path: inset(0 round var(--r)); }
   }
 </style>
 </head>
@@ -224,64 +184,47 @@
   <small>Alza il volume: c'è una canzone per te</small>
 </div>
 
-<nav class="nav" id="nav" aria-label="Pagine">
+<nav class="nav" aria-label="Capitoli">
   <a class="mono" data-go="0">G &amp; M</a>
-  <a data-go="2">La storia</a>
-  <a data-go="4">Il giorno</a>
-  <a data-go="7">Regali</a>
+  <a data-go="3">La storia</a>
+  <a data-go="6">Il giorno</a>
+  <a data-go="9">Regali</a>
 </nav>
 
-<main class="book" id="book">
+<main class="stage">
+  <div class="book-wrap" id="wrap">
+    <div id="book">
 
-  <!-- 0 · copertina -->
-  <section class="page dark" aria-label="Copertina">
-    <div class="face"><div class="content framed">
-      <div class="frame">
-        <div class="hero-media"><img src="foto/coppia.jpg" alt="Giulia e Marco camminano mano nella mano tra i pini al tramonto"></div>
-        <div class="bokeh" id="bokeh" aria-hidden="true"></div>
-        <div class="hero-text">
-          <h1 class="names display">
-            <span data-letters>Giulia</span>
-            <span class="amp" data-letters>&amp;</span>
-            <span data-letters>Marco</span>
-          </h1>
-          <p class="hero-date">Sabato 12 giugno 2027<br>Villa dei Cedri, Sirmione</p>
-        </div>
-      </div>
-    </div></div>
-    <div class="back"></div>
-  </section>
+      <!-- copertina rigida -->
+      <div class="page hard cover" data-density="hard"><div class="pg">
+        <div class="frame-line"></div>
+        <div class="window"><img src="foto/coppia.jpg" alt="Giulia e Marco camminano mano nella mano tra i pini al tramonto"></div>
+        <h1 class="foil display">Giulia<span class="amp">&amp;</span>Marco</h1>
+        <p class="date">12 giugno 2027</p>
+      </div></div>
 
-  <!-- 1 · invito -->
-  <section class="page" aria-label="Invito">
-    <div class="face"><div class="content"><div class="inner lead">
-      <p class="display" data-words>Il 12 giugno 2027 ci sposiamo. Sarà una giornata lunga e piena di luce, e il pensiero più bello è passarla con voi.</p>
-    </div></div></div>
-    <div class="back"></div>
-  </section>
+      <!-- risguardo -->
+      <div class="page endpaper"><div class="pg">
+        <div class="seal display">G&amp;M</div>
+        <small>Questo libro è per te</small>
+      </div></div>
 
-  <!-- 2 · storia -->
-  <section class="page" aria-label="La storia">
-    <div class="face"><div class="content"><div class="inner">
-      <div class="story">
-        <figure class="arch fade-up"><img src="foto/velo.jpg" alt="Giulia e Marco sotto il velo, fronte contro fronte"></figure>
-        <div>
-          <h2 data-words>Come è cominciata</h2>
-          <div class="fade-up" style="--i:2">
-            <p>Ci siamo conosciuti per caso, sotto la stessa pensilina, in un pomeriggio di pioggia. L'autobus non arrivava e abbiamo cominciato a parlare.</p>
-            <p>Da allora non abbiamo più smesso. Sette anni, tre case e un numero imprecisato di viaggi dopo, abbiamo deciso di dirci di sì.</p>
-          </div>
-        </div>
-      </div>
-    </div></div></div>
-    <div class="back"></div>
-  </section>
+      <div class="page lead"><div class="pg">
+        <p class="display" data-words>Il 12 giugno 2027 ci sposiamo. Sarà una giornata lunga e piena di luce, e il pensiero più bello è passarla con voi.</p>
+      </div></div>
 
-  <!-- 3 · conto alla rovescia -->
-  <section class="page dark" aria-label="Conto alla rovescia">
-    <div class="face"><div class="content framed">
-      <div class="count-card">
-        <div class="stars" id="stars" aria-hidden="true"></div>
+      <div class="page photo-page"><div class="pg">
+        <figure class="arch"><img src="foto/velo.jpg" alt="Giulia e Marco sotto il velo, fronte contro fronte"></figure>
+      </div></div>
+
+      <div class="page story"><div class="pg">
+        <h2 data-words>Come è cominciata</h2>
+        <p class="fade-up" style="--i:1">Ci siamo conosciuti per caso, sotto la stessa pensilina, in un pomeriggio di pioggia. L'autobus non arrivava e abbiamo cominciato a parlare.</p>
+        <p class="fade-up" style="--i:2">Da allora non abbiamo più smesso. Sette anni, tre case e un numero imprecisato di viaggi dopo, abbiamo deciso di dirci di sì.</p>
+      </div></div>
+
+      <div class="page count-page"><div class="pg">
+        <div class="page-stars" id="stars" aria-hidden="true"></div>
         <h2 data-words>Per sempre inizia tra</h2>
         <div class="timer fade-up" role="timer" style="--i:2">
           <div><b data-u="d">214</b><span>giorni</span></div>
@@ -289,113 +232,84 @@
           <div><b data-u="m">00</b><span>minuti</span></div>
           <div><b data-u="s">00</b><span>secondi</span></div>
         </div>
-      </div>
-    </div></div>
-    <div class="back"></div>
-  </section>
+      </div></div>
 
-  <!-- 4 · programma -->
-  <section class="page" aria-label="Il nostro giorno">
-    <div class="face"><div class="content"><div class="inner">
-      <div class="day">
+      <div class="page"><div class="pg">
         <h2 data-words>Il nostro giorno</h2>
         <ol class="schedule">
-          <div class="line" aria-hidden="true"><i></i></div>
-          <li class="fade-up" style="--i:1"><time>15:30</time><div><h3>Arrivo e aperitivo</h3><p class="muted">Vi aspettiamo nel giardino di Villa dei Cedri, all'ombra dei pini.</p></div></li>
-          <li class="fade-up" style="--i:2"><time>16:00</time><div><h3>Cerimonia</h3><p class="muted">Villa dei Cedri, via del Lago 2, Sirmione. C'è un parcheggio gratuito all'ingresso.</p><a href="https://www.google.com/maps/search/?api=1&amp;query=Villa+dei+Cedri+Sirmione" target="_blank" rel="noopener">Apri il percorso in Google Maps</a></div></li>
-          <li class="fade-up" style="--i:3"><time>18:30</time><div><h3>Cena</h3><p class="muted">Grand Hotel Riviera, lungolago 8, Sirmione, a cinque minuti a piedi dalla villa.</p><a href="https://www.google.com/maps/search/?api=1&amp;query=Grand+Hotel+Riviera+Sirmione" target="_blank" rel="noopener">Apri il percorso in Google Maps</a></div></li>
-          <li class="fade-up" style="--i:4"><time>22:00</time><div><h3>Festa</h3><p class="muted">Si balla finché ce la facciamo.</p></div></li>
+          <li class="fade-up" style="--i:1"><time>15:30</time><h3>Arrivo e aperitivo</h3><p class="muted">Nel giardino di Villa dei Cedri, all'ombra dei pini.</p></li>
+          <li class="fade-up" style="--i:2"><time>16:00</time><h3>Cerimonia</h3><p class="muted">Villa dei Cedri, via del Lago 2, Sirmione.</p><a href="https://www.google.com/maps/search/?api=1&amp;query=Villa+dei+Cedri+Sirmione" target="_blank" rel="noopener">Apri in Google Maps</a></li>
+          <li class="fade-up" style="--i:3"><time>18:30</time><h3>Cena</h3><p class="muted">Grand Hotel Riviera, lungolago 8, Sirmione.</p><a href="https://www.google.com/maps/search/?api=1&amp;query=Grand+Hotel+Riviera+Sirmione" target="_blank" rel="noopener">Apri in Google Maps</a></li>
+          <li class="fade-up" style="--i:4"><time>22:00</time><h3>Festa</h3><p class="muted">Si balla finché ce la facciamo.</p></li>
         </ol>
-      </div>
-    </div></div></div>
-    <div class="back"></div>
-  </section>
+      </div></div>
 
-  <!-- 5 · la sala -->
-  <section class="page dark" aria-label="La sala">
-    <div class="face"><div class="content framed">
-      <figure class="wide-frame">
-        <img src="foto/tavola.jpg" alt="Tavolo apparecchiato con ortensie blu e bianche sotto piccole luci sospese">
-        <figcaption class="display">Ceneremo in una sala bianca, sotto un cielo di piccole luci.</figcaption>
-      </figure>
-    </div></div>
-    <div class="back"></div>
-  </section>
+      <div class="page photo-page"><div class="pg">
+        <figure class="rounded">
+          <img src="foto/tavola.jpg" alt="Tavolo apparecchiato con ortensie blu e bianche sotto piccole luci sospese" style="object-position:50% 62%">
+          <figcaption class="display">Ceneremo in una sala bianca, sotto un cielo di piccole luci.</figcaption>
+        </figure>
+      </div></div>
 
-  <!-- 6 · dress code -->
-  <section class="page" aria-label="Cosa indossare">
-    <div class="face"><div class="content"><div class="inner dress">
-      <h2 data-words>Cosa indossare</h2>
-      <p class="fade-up" style="--i:1">Abito da sera. Se vi va, lasciatevi ispirare dai colori della giornata. Il bianco lo lasciamo alla sposa.</p>
-      <ul class="swatches">
-        <li style="--c:#2b2a3a; --i:0">Blu notte</li>
-        <li style="--c:#8fa6cf; --i:1">Ortensia</li>
-        <li style="--c:#c48a78; --i:2">Rosa antico</li>
-        <li style="--c:#e9d8cc; --i:3">Cipria</li>
-      </ul>
-    </div></div></div>
-    <div class="back"></div>
-  </section>
+      <div class="page dress"><div class="pg">
+        <h2 data-words>Cosa indossare</h2>
+        <p class="fade-up" style="--i:1">Abito da sera. Se vi va, lasciatevi ispirare dai colori della giornata. Il bianco lo lasciamo alla sposa.</p>
+        <ul class="swatches">
+          <li style="--c:#2b2a3a; --i:0">Blu notte</li>
+          <li style="--c:#8fa6cf; --i:1">Ortensia</li>
+          <li style="--c:#c48a78; --i:2">Rosa</li>
+          <li style="--c:#e9d8cc; --i:3">Cipria</li>
+        </ul>
+      </div></div>
 
-  <!-- 7 · regali -->
-  <section class="page" aria-label="Regali">
-    <div class="face"><div class="content"><div class="inner">
-      <div class="gift-card fade-up">
+      <div class="page gift"><div class="pg">
         <h2 data-words>Un pensiero per noi</h2>
-        <p>Averci accanto è già il regalo più bello. Se volete aggiungere qualcosa, potete contribuire al nostro viaggio di nozze.</p>
-        <p class="iban" id="iban">IT00 X000 0000 0000 0000 0000 000</p>
-        <p class="owner muted">Intestato a Giulia e Marco</p>
-        <button class="btn" id="copy" type="button">Copia IBAN</button>
-      </div>
-    </div></div></div>
-    <div class="back"></div>
-  </section>
+        <p class="fade-up" style="--i:1">Averci accanto è già il regalo più bello. Se volete aggiungere qualcosa, potete contribuire al nostro viaggio di nozze.</p>
+        <p class="iban fade-up" id="iban" style="--i:2">IT00 X000 0000 0000 0000 0000 000</p>
+        <p class="owner muted fade-up" style="--i:2">Intestato a Giulia e Marco</p>
+        <button class="btn fade-up" id="copy" type="button" style="--i:3">Copia IBAN</button>
+      </div></div>
 
-  <!-- 8 · chiusura -->
-  <section class="page" aria-label="Arrivederci">
-    <div class="face"><div class="content"><div class="inner end">
-      <p class="display" data-words>Ci vediamo il 12 giugno</p>
-      <small class="fade-up" style="--i:3">Con amore, Giulia e Marco</small>
-      <button class="btn ghost fade-up" style="--i:5" type="button" data-go="0">Rileggi dall'inizio</button>
-    </div></div></div>
-    <div class="back"></div>
-  </section>
+      <div class="page end"><div class="pg">
+        <p class="display" data-words>Ci vediamo il 12 giugno</p>
+        <small class="fade-up" style="--i:3">Con amore, Giulia e Marco</small>
+        <button class="btn ghost fade-up" style="--i:5" type="button" data-go="0">Rileggi dall'inizio</button>
+      </div></div>
 
+      <!-- quarta di copertina -->
+      <div class="page hard back-cover" data-density="hard"><div class="pg">
+        <div class="frame-line" style="position:absolute;inset:4.5cqw;border:1px solid rgb(217 183 121 / .45);border-radius:3cqw"></div>
+        <p class="foil display mono">G&amp;M</p>
+        <p class="date" style="margin-top:4cqw;color:rgb(217 183 121 / .9)">12 · 06 · 2027</p>
+      </div></div>
+
+    </div>
+  </div>
 </main>
 
-<button class="corner" id="corner" type="button" aria-label="Pagina successiva"></button>
-<p class="hint" id="hint">Sfoglia l'invito</p>
+<div class="controls">
+  <button id="prev" type="button" aria-label="Pagina precedente">‹</button>
+  <span id="pageNum">Copertina</span>
+  <button id="next" type="button" aria-label="Pagina successiva">›</button>
+</div>
 <button class="music paused" id="music" type="button" aria-label="Riprendi la musica" hidden><span></span><span></span><span></span></button>
 <audio id="song" src="musica.mp3" loop preload="auto"></audio>
 
+<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 <script>
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const rand = (a, b) => a + Math.random() * (b - a);
 
-  // ---------- testi animati ----------
-  let li = 0;
-  document.querySelectorAll('[data-letters]').forEach(el => {
-    el.innerHTML = [...el.textContent].map(c => `<span class="ch" style="--i:${li++}">${c}</span>`).join('');
-  });
+  // ---------- testi parola per parola, stelle ----------
   document.querySelectorAll('[data-words]').forEach(el => {
     el.innerHTML = el.textContent.trim().split(/\s+/).map((w, i) => `<span class="w" style="--i:${i}">${w}</span>`).join(' ');
   });
-
-  // ---------- luci e stelle ----------
-  const bokeh = document.getElementById('bokeh');
-  for (let i = 0; i < 9; i++) {
-    const s = document.createElement('span'), size = rand(40, 140);
-    Object.assign(s.style, { width: size + 'px', height: size + 'px', left: rand(0, 95) + '%', top: rand(5, 75) + '%',
-      '--o': rand(.35, .8).toFixed(2), '--d': rand(1.2, 3).toFixed(1) + 's', '--t': rand(9, 16).toFixed(1) + 's',
-      '--x': rand(-60, 60).toFixed(0) + 'px', '--y': rand(-50, 30).toFixed(0) + 'px' });
-    bokeh.append(s);
-  }
   for (const id of ['stars', 'gateStars']) {
-    const stars = document.getElementById(id);
-    for (let i = 0; i < 50; i++) {
+    const box = document.getElementById(id);
+    for (let i = 0; i < (id === 'stars' ? 30 : 50); i++) {
       const s = document.createElement('i');
       Object.assign(s.style, { left: rand(0, 100) + '%', top: rand(0, 50) + '%', '--t': rand(2, 5).toFixed(1) + 's', animationDelay: -rand(0, 5).toFixed(1) + 's' });
-      stars.append(s);
+      box.append(s);
     }
   }
 
@@ -407,8 +321,7 @@
     const t = Math.max(0, Math.floor((target - new Date()) / 1000));
     const v = { d: Math.floor(t / 86400), h: Math.floor(t / 3600) % 24, m: Math.floor(t / 60) % 60, s: t % 60 };
     for (const u in v) {
-      const txt = u === 'd' ? String(v[u]) : String(v[u]).padStart(2, '0');
-      const b = cells[u];
+      const txt = u === 'd' ? String(v[u]) : String(v[u]).padStart(2, '0'), b = cells[u];
       if (b.dataset.v === txt) continue;
       b.dataset.v = txt;
       b.innerHTML = `<i>${txt}</i>`;
@@ -419,128 +332,78 @@
 
   // ---------- copia IBAN ----------
   const copy = document.getElementById('copy');
-  copy.onclick = async () => {
+  copy.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(document.getElementById('iban').textContent.replace(/\s/g, ''));
       copy.textContent = 'IBAN copiato';
     } catch { copy.textContent = 'Copia non riuscita, selezionalo a mano'; }
     setTimeout(() => copy.textContent = 'Copia IBAN', 2500);
-  };
-
-  // ---------- il libro: si sfoglia pagina per pagina ----------
-  const book = document.getElementById('book');
-  const pages = [...book.querySelectorAll('.page')];
-  const nav = document.getElementById('nav'), corner = document.getElementById('corner'), hint = document.getElementById('hint');
-  let cur = 0, busy = false, gated = true;
-  pages.forEach((p, i) => { if (i > 0) p.querySelector('.content').insertAdjacentHTML('beforeend', `<div class="folio">${i}</div>`); });
-
-  const easeInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-  const easeOut = k => 1 - Math.pow(1 - k, 3);
-  const reveal = page => page.querySelectorAll('[data-words], .fade-up, .wide-frame, .swatches, .schedule').forEach(el => el.classList.add('in'));
-
-  // prepara il giro di pagina verso n: avanti gira la pagina corrente, indietro riporta giù quella precedente
-  function begin(n) {
-    busy = true;
-    const dir = n > cur ? 1 : -1, a = pages[cur], b = pages[n];
-    const f = { n, dir, mover: dir > 0 ? a : b, under: dir > 0 ? b : a, p: dir > 0 ? 0 : 1 };
-    f.under.classList.add('under');
-    f.mover.classList.add('moving');
-    update(f, f.p);
-    setTimeout(() => reveal(b), 200);
-    return f;
-  }
-  function update(f, p) {
-    f.p = p;
-    f.mover.style.transform = `rotateY(${-180 * p}deg)`;
-    f.mover.querySelector('.face').style.setProperty('--light', (Math.sin(p * Math.PI) * .9).toFixed(3));
-    f.under.querySelector('.face').style.setProperty('--shade', ((1 - p) * .35).toFixed(3));
-  }
-  function settle(f, complete, ms, ease) {
-    const to = (f.dir > 0) === complete ? 1 : 0, from = f.p;
-    const dur = reduce ? 1 : Math.max(250, ms * Math.abs(to - from));
-    return new Promise(res => {
-      const t0 = performance.now();
-      requestAnimationFrame(function step(now) {
-        const k = Math.min(1, (now - t0) / dur);
-        update(f, from + (to - from) * ease(k));
-        if (k < 1) return requestAnimationFrame(step);
-        if (complete) cur = f.n;
-        finalize(); res();
-      });
-    });
-  }
-  function finalize() {
-    pages.forEach((pg, i) => {
-      pg.classList.remove('under', 'moving');
-      pg.classList.toggle('current', i === cur);
-      pg.style.transform = '';
-      const face = pg.querySelector('.face');
-      face.style.setProperty('--light', 0); face.style.setProperty('--shade', 0);
-    });
-    busy = false;
-    nav.classList.toggle('light', !pages[cur].classList.contains('dark'));
-    corner.classList.toggle('hide', cur === pages.length - 1);
-    if (cur > 0) hint.classList.add('hide');
-  }
-  function goTo(n) {
-    if (gated || busy || n === cur || n < 0 || n >= pages.length) return;
-    settle(begin(n), true, 1300, easeInOut);
-  }
-  finalize();
-
-  corner.onclick = () => goTo(cur + 1);
-  document.querySelectorAll('[data-go]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); goTo(+el.dataset.go); }));
-  addEventListener('keydown', e => {
-    if (['ArrowRight', 'PageDown'].includes(e.key)) goTo(cur + 1);
-    if (['ArrowLeft', 'PageUp'].includes(e.key)) goTo(cur - 1);
   });
 
-  // rotella / trackpad: prima scorre il contenuto della pagina se serve, poi sfoglia
+  // ---------- il libro ----------
+  const RATIO = 550 / 780;  // larghezza / altezza di una pagina
+  const pageEls = [...document.querySelectorAll('#book .page')];
+  const last = pageEls.length - 1;
+  pageEls.forEach((p, i) => {
+    if (i === 0 || i === last) return;
+    p.classList.add(i % 2 ? 'left' : 'right');                                   // pagina sinistra o destra del libro aperto
+    if (i > 1) p.querySelector('.pg').insertAdjacentHTML('beforeend', `<span class="folio">${i - 1}</span>`);
+  });
+
+  // dimensiona il libro sullo schermo: due pagine affiancate se c'è spazio, una sola su telefono
+  const wrap = document.getElementById('wrap'), stage = document.querySelector('.stage');
+  const cs = getComputedStyle(stage);
+  const availW = innerWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const availH = innerHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const spread = innerWidth >= 800 && innerWidth > innerHeight;
+  const pageH = Math.min(availH, (spread ? availW / 2 : availW) / RATIO);
+  const pageW = Math.floor(pageH * RATIO);
+  document.getElementById('book').style.width = (spread ? pageW * 2 : pageW) + 'px';
+
+  const flip = new St.PageFlip(document.getElementById('book'), {
+    width: pageW, height: Math.floor(pageH), size: 'fixed',
+    usePortrait: !spread, showCover: true, drawShadow: true, maxShadowOpacity: .55,
+    flippingTime: reduce ? 1 : 1100, mobileScrollSupport: false, showPageCorners: true, autoSize: true,
+  });
+  flip.loadFromHTML(pageEls);
+  if (!spread) flip.update?.();
+
+  const prev = document.getElementById('prev'), next = document.getElementById('next'), pageNum = document.getElementById('pageNum');
+  function onPage(i) {
+    // anima i contenuti delle pagine visibili (con il libro aperto se ne vedono due)
+    (spread ? [i - 1, i, i + 1] : [i]).forEach(n => pageEls[n]?.classList.add('in'));
+    // libro chiuso: la copertina va al centro
+    wrap.classList.toggle('closed-front', spread && i === 0);
+    wrap.classList.toggle('closed-back', spread && i >= last);
+    prev.disabled = i === 0;
+    next.disabled = i >= last;
+    pageNum.textContent = i === 0 ? 'Copertina' : i >= last ? 'Fine' : spread ? `${i}–${i + 1} di ${last - 1}` : `${i} di ${last - 1}`;
+  }
+  flip.on('flip', e => onPage(e.data));
+  onPage(0);
+
+  prev.onclick = () => flip.flipPrev();
+  next.onclick = () => flip.flipNext();
+  document.querySelectorAll('[data-go]').forEach(el => el.addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation();
+    const n = +el.dataset.go;
+    if (n !== flip.getCurrentPageIndex()) flip.flip(n);
+  }));
+  addEventListener('keydown', e => {
+    if (document.body.classList.contains('gated')) return;
+    if (['ArrowRight', 'PageDown'].includes(e.key)) flip.flipNext();
+    if (['ArrowLeft', 'PageUp'].includes(e.key)) flip.flipPrev();
+  });
   let wheelLock = 0;
   addEventListener('wheel', e => {
-    if (gated || busy) return;
-    const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY), d = horizontal ? e.deltaX : e.deltaY;
-    if (Math.abs(d) < 12) return;
-    const sc = pages[cur].querySelector('.content');
-    if (!horizontal && d > 0 && sc.scrollTop + sc.clientHeight < sc.scrollHeight - 2) return;
-    if (!horizontal && d < 0 && sc.scrollTop > 2) return;
-    if (performance.now() < wheelLock) return;
-    wheelLock = performance.now() + 1500;
-    goTo(cur + (d > 0 ? 1 : -1));
+    if (document.body.classList.contains('gated') || performance.now() < wheelLock) return;
+    const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    if (Math.abs(d) < 15) return;
+    wheelLock = performance.now() + 1400;
+    d > 0 ? flip.flipNext() : flip.flipPrev();
   }, { passive: true });
 
-  // trascinamento con dito o mouse: la pagina segue il gesto
-  let drag = null;
-  book.addEventListener('pointerdown', e => {
-    if (gated || busy || e.button !== 0 || e.target.closest('a, button')) return;
-    drag = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId, f: null };
-  });
-  addEventListener('pointermove', e => {
-    if (!drag || e.pointerId !== drag.id) return;
-    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
-    if (!drag.f) {
-      if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
-      if (Math.abs(dx) < 12) return;
-      const n = cur + (dx < 0 ? 1 : -1);
-      if (n < 0 || n >= pages.length) { drag = null; return; }
-      drag.f = begin(n);
-      book.setPointerCapture?.(e.pointerId);
-    }
-    const p = Math.min(1, Math.max(0, -dx / (innerWidth * .8)));
-    update(drag.f, drag.f.dir > 0 ? p : 1 - Math.min(1, Math.max(0, dx / (innerWidth * .8))));
-  });
-  function endDrag(e) {
-    if (!drag || e.pointerId !== drag.id) return;
-    const d = drag; drag = null;
-    if (!d.f) return;
-    const dx = e.clientX - d.x, fast = Math.abs(dx) / (performance.now() - d.t) > .5;
-    const progress = d.f.dir > 0 ? d.f.p : 1 - d.f.p;
-    settle(d.f, progress > .35 || fast, 800, easeOut);
-  }
-  addEventListener('pointerup', endDrag);
-  addEventListener('pointercancel', endDrag);
-
-  // ---------- ingresso e musica (i browser la fanno partire solo dopo un tocco) ----------
+  // ---------- ingresso e musica ----------
   const gate = document.getElementById('gate'), song = document.getElementById('song'), music = document.getElementById('music');
   let playing = false, fadeTimer;
   function fadeTo(v, ms) {
@@ -560,14 +423,15 @@
     else fadeTo(0, 800);
   }
   song.addEventListener('canplay', () => music.hidden = false, { once: true });
-  song.addEventListener('error', () => music.remove()); // nessun file musica.mp3: niente pulsante
+  song.addEventListener('error', () => music.remove());
   document.getElementById('enter').onclick = () => {
     song.volume = 0;
     setPlaying(true, true);
     gate.classList.add('out');
     document.body.classList.remove('gated');
-    gated = false;
+    wrap.classList.add('enter-anim');
     setTimeout(() => gate.remove(), 1900);
+    setTimeout(() => { if (flip.getCurrentPageIndex() === 0) flip.flipNext(); }, 2600); // il libro si apre da solo
   };
   music.onclick = () => setPlaying(!playing);
   let wasPlaying = false;
