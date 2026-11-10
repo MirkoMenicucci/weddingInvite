@@ -56,9 +56,8 @@
   body.ready #film { opacity: 1; }
   /* fine video: il libro sfogliabile sale in dissolvenza sopra il video che sta ancora finendo */
   body.filming .stage { transition: opacity 1.2s ease; }
-  body.single.shown #film { opacity: 1; }
-  body.filming:not(.single).shown #film { opacity: 0; filter: blur(10px); transition: opacity 1.6s ease, filter 1.6s ease; }
-  body.opened #film { opacity: 0; transition: opacity 1.2s ease; }
+  /* il video resta fermo sull'ultimo fotogramma: è la scrivania su cui si apre il libro */
+  body.filming #topShot, body.filming #backdrop { display: none; }
   /* vignettatura: bordi scuri come in un film, resta fino a quando si apre il libro */
   .vignette { position: fixed; inset: 0; z-index: 20; pointer-events: none; opacity: 0; transition: opacity 2.6s ease .3s;
     background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 35%, rgb(12 9 6 / .34) 62%, rgb(12 9 6 / .8) 100%); }
@@ -74,7 +73,7 @@
   body.zoomed .hint { opacity: 0; transition: opacity .6s ease; }
   body.gated { cursor: pointer; }
 
-  .stage { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 76px 16px 84px; transition: opacity .6s var(--ease); }
+  .stage { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 80px 16px 80px; transition: opacity .6s var(--ease); }
   body.gated .stage { pointer-events: none; }
   body.gated:not(.shown) .stage { opacity: 0; }
   .book-wrap { position: relative; transition: transform 1.2s var(--ease); filter: drop-shadow(0 26px 34px rgb(70 50 30 / .28)) drop-shadow(0 5px 9px rgb(70 50 30 / .2)); }
@@ -209,7 +208,7 @@
 
 <img id="backdrop" src="foto/legno.webp" alt="">
 <img class="shot" id="wide" alt="Una scrivania luminosa con il libro dell'invito, un vaso di ortensie e le fedi">
-<img class="shot" id="topShot" src="foto/libro-alto.webp" alt="">
+<img class="shot" id="topShot" alt="">
 <video id="film" muted playsinline preload="auto" hidden aria-label="La camera si avvicina al libro sulla scrivania"></video>
 <div class="vignette" aria-hidden="true"></div>
 <div class="hint"><p>Tocca il libro</p><small>per aprire l'invito, alza il volume</small></div>
@@ -367,7 +366,7 @@
   });
 
   // ---------- il libro ----------
-  const RATIO = 550 / 780;  // larghezza / altezza di una pagina
+  const RATIO = 374 / 520;  // larghezza / altezza di una pagina, come il libro nelle foto
   const pageEls = [...document.querySelectorAll('#book .page')];
   const last = pageEls.length - 1;
   pageEls.forEach((p, i) => {
@@ -384,7 +383,7 @@
   const spread = innerWidth >= 800 && innerWidth > innerHeight;
   document.body.classList.toggle('single', !spread);
   // su telefono la pagina riempie tutto lo schermo
-  const pageH = spread ? Math.min(availH, availW / 2 / RATIO) : innerHeight;
+  const pageH = spread ? Math.min(availH, availW / 2 / RATIO, 484 * 1.025 * Math.max(innerWidth / 1280, innerHeight / 720)) : innerHeight;   // +2,5%: copre i bordi del libro del video
   const pageW = spread ? Math.floor(pageH * RATIO) : innerWidth;
   document.getElementById('book').style.width = (spread ? pageW * 2 : pageW) + 'px';
   window.bookGeom = { spread, pageW, pageH };   // la scena 3D usa queste misure per inquadrare la copertina
@@ -456,14 +455,17 @@
   const WIDE = spread
     ? { src: 'foto/scrivania.webp', w: 1376, h: 768, bx: 690, by: 488, bookW: 421 }
     : { src: 'foto/scrivania-telefono.webp', w: 768, h: 1376, bx: 389, by: 743, bookW: 247 };
-  const TOP = { bx: 382.5, by: 688.5, w: 768, h: 1376, bookW: 573, bookH: 797 };
+  const TOP = spread
+    ? { src: 'foto/scrivania-alto.webp', w: 1376, h: 768, bx: 687, by: 386, bookW: 374, bookH: 520 }
+    : { src: 'foto/libro-alto.webp', w: 768, h: 1376, bx: 383, by: 689, bookW: 574, bookH: 798 };
   const wide = document.getElementById('wide'), topShot = document.getElementById('topShot'), coverPg = document.querySelector('.cover .pg');
   wide.src = WIDE.src;
+  topShot.src = TOP.src;
   // sposta il punto (bx, by) dell'immagine in (tx, ty) dello schermo con zoom s
   const place = (tx, ty, s, bx, by) => `translate(${tx}px, ${ty}px) scale(${s}) translate(${-bx}px, ${-by}px)`;
   function layoutShots(zoomed) {
     const W = innerWidth, H = innerHeight, s0 = Math.max(W / WIDE.w, H / WIDE.h);
-    const coverH = Math.floor(pageH), cx = W / 2, cy = spread ? H / 2 - 4 : H / 2;   // dove sta la copertina del libro sfogliabile
+    const coverH = Math.floor(pageH), cx = W / 2, cy = H / 2;   // dove sta la copertina del libro sfogliabile
     const k = coverH / TOP.bookH, kStart = k * 1.35;
     if (!zoomed) {
       wide.style.transform = place((W - WIDE.w * s0) / 2 + WIDE.bx * s0, (H - WIDE.h * s0) / 2 + WIDE.by * s0, s0, WIDE.bx, WIDE.by);
@@ -473,7 +475,7 @@
       topShot.style.transform = place(cx, cy, k, TOP.bx, TOP.by);
     }
     // la copertina sfogliabile usa la stessa foto dall'alto, allineata al pixel: il passaggio non si vede
-    coverPg.style.background = `#22305c url(foto/libro-alto.webp) ${pageW / 2 - TOP.bx * k}px ${coverH / 2 - TOP.by * k}px / ${TOP.w * k}px ${TOP.h * k}px no-repeat`;
+    coverPg.style.background = `#22305c url(${TOP.src}) ${pageW / 2 - TOP.bx * k}px ${coverH / 2 - TOP.by * k}px / ${TOP.w * k}px ${TOP.h * k}px no-repeat`;
   }
   layoutShots(false);
 
@@ -509,7 +511,7 @@
     if (useFilm) {
       // il libro sfogliabile compare in dissolvenza mentre il video sta ancora finendo: nessuno scatto
       document.body.classList.add('zoomed', 'filming');
-      const lead = spread ? 1.6 : 0.9;   // secondi prima della fine in cui parte la dissolvenza
+      const lead = 0.9;   // secondi prima della fine in cui parte la dissolvenza
       const nearEnd = new Promise(r => {
         const check = () => { if (film.duration && film.currentTime >= film.duration - lead) { film.removeEventListener('timeupdate', check); r(); } };
         film.addEventListener('timeupdate', check);
