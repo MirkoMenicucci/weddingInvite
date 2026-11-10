@@ -35,14 +35,42 @@
   h2, .display, p { text-wrap: balance; }
   .muted { color: var(--mute); }
 
-  /* ---------- tavolo e libro ---------- */
-  .stage { position: fixed; inset: 0; display: grid; place-items: center; padding: 76px 16px 84px; }
-  .book-wrap { position: relative; transition: transform 1.2s var(--ease); filter: drop-shadow(0 30px 40px rgb(60 40 40 / .28)) drop-shadow(0 6px 10px rgb(60 40 40 / .15)); }
+  /* ---------- scrivania, luce e libro ---------- */
+  :root { --cam: cubic-bezier(.62, .02, .2, 1); --zoom: 3.4s; }
+  body { background: #120c08; }
+  .desk { position: fixed; inset: -20%; z-index: 0; background-color: #2a1a10;
+    background-image:
+      radial-gradient(ellipse 30% 34% at 50% 47%, rgb(255 205 150 / .42), rgb(255 190 130 / .12) 55%, transparent 75%),
+      radial-gradient(ellipse at 50% 50%, transparent 25%, rgb(8 5 3 / .88) 75%),
+      repeating-linear-gradient(180deg, transparent 0 238px, rgb(0 0 0 / .4) 238px 240px, rgb(255 220 180 / .06) 240px 241px),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.0035 .09' numOctaves='4' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='.34 0 0 0 .19 .21 0 0 0 .1 .12 0 0 0 .05 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='1200' height='800' filter='url(%23w)'/%3E%3C/svg%3E");
+    background-size: auto, auto, auto, 1200px 800px;
+    transition: transform var(--zoom) var(--cam), filter var(--zoom) var(--cam); }
+  .desk::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 26% 30% at 50% 46%, rgb(255 214 160 / .22), transparent 70%); animation: lamp 6s ease-in-out infinite alternate; }
+  @keyframes lamp { from { opacity: .55; } to { opacity: 1; } }
+  body.zoomed .desk { transform: scale(2.3); filter: blur(8px) brightness(.5); }
+
+  /* luce calda e polvere sopra la scena, sparisce quando la camera arriva sul libro */
+  .glow { position: fixed; inset: 0; z-index: 20; pointer-events: none; transition: opacity var(--zoom) var(--cam);
+    background: radial-gradient(ellipse 40% 48% at 50% 44%, rgb(255 214 160 / .14), transparent 70%), radial-gradient(ellipse at 50% 50%, transparent 40%, rgb(10 6 4 / .65)); }
+  body.zoomed .glow { opacity: 0; }
+  .glow i { position: absolute; border-radius: 50%; background: rgb(255 226 180 / .9); filter: blur(.6px); box-shadow: 0 0 6px rgb(255 214 160 / .8); animation: mote var(--t) ease-in-out infinite alternate; }
+  @keyframes mote { from { transform: translate(0, 0); opacity: .15; } 50% { opacity: .9; } to { transform: translate(var(--x), var(--y)); opacity: .2; } }
+  .hint { position: fixed; z-index: 25; left: 0; right: 0; bottom: 8vh; text-align: center; color: #f6e2c6; pointer-events: none; transition: opacity 1s var(--ease); }
+  .hint p { font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(20px, 2.2vw, 28px); animation: breathe 2.8s ease-in-out infinite; text-shadow: 0 2px 20px rgb(0 0 0 / .6); }
+  .hint small { display: block; margin-top: 6px; font-size: 14px; opacity: .7; }
+  @keyframes breathe { 50% { opacity: .45; } }
+  body.zoomed .hint { opacity: 0; }
+  body.gated { cursor: pointer; }
+
+  .stage { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 76px 16px 84px; perspective: 1600px; }
+  body.gated .stage { pointer-events: none; }
+  /* camera: il libro è appoggiato sulla scrivania, poi lo zoom lo porta a schermo intero */
+  .camera { transform: translateY(4vh) rotateX(36deg) rotateZ(-5deg) scale(.5); transition: transform var(--zoom) var(--cam); }
+  body.zoomed .camera { transform: none; }
+  .book-wrap { position: relative; transition: transform 1.2s var(--ease); filter: drop-shadow(0 30px 40px rgb(0 0 0 / .45)) drop-shadow(0 6px 10px rgb(0 0 0 / .3)); }
   .book-wrap.closed-front { transform: translateX(-25%); }
   .book-wrap.closed-back { transform: translateX(25%); }
-  .enter-anim { animation: bookIn 1.8s var(--ease) both; }
-  @keyframes bookIn { from { opacity: 0; transform: translateY(50px) scale(.92); filter: blur(10px); } }
-  body.gated .book-wrap { opacity: 0; }
 
   /* ---------- pagine di carta ---------- */
   /* pagine interne: carta da acquerello vera come sfondo, le foto ci stanno sopra pulite */
@@ -133,24 +161,8 @@
   .controls button { width: 42px; height: 42px; border-radius: 50%; border: 0; cursor: pointer; font: 400 22px/1 'Fraunces', serif; color: var(--ink); background: rgb(252 248 243 / .75); box-shadow: 0 6px 18px rgb(60 40 40 / .12); transition: transform .4s var(--ease), opacity .4s; }
   .controls button:hover { transform: scale(1.08); }
   .controls button:disabled { opacity: .3; cursor: default; transform: none; }
-  body.gated .nav, body.gated .controls { opacity: 0; }
-  .nav, .controls { transition: opacity 1.2s var(--ease) 1s; }
-
-  /* ---------- ingresso con musica ---------- */
-  .gate { position: fixed; inset: 0; z-index: 50; display: grid; place-content: center; justify-items: center; padding: 24px; text-align: center; color: #fff; background: var(--dusk);
-    transition: opacity 1.4s var(--ease), filter 1.4s var(--ease), transform 1.8s var(--ease); }
-  .gate.out { opacity: 0; filter: blur(12px); transform: scale(1.06); pointer-events: none; }
-  .gate > *:not(.stars) { position: relative; opacity: 0; animation: appear 2s var(--ease) forwards; }
-  @keyframes appear { from { opacity: 0; filter: blur(12px); } to { opacity: 1; filter: none; } }
-  .stars i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; animation: twinkle var(--t) ease-in-out infinite alternate; }
-  .gate-names { font-size: clamp(52px, 9vw, 120px); line-height: 1; animation-delay: .3s !important; }
-  .gate-date { margin-top: 14px; font-size: 18px; animation-delay: .7s !important; }
-  .enter { margin-top: 48px; width: 132px; height: 132px; border-radius: 50%; border: 1px solid rgb(255 255 255 / .55); background: rgb(255 255 255 / .08); color: #fff; font: inherit; font-size: 18px; line-height: 1.3; cursor: pointer;
-    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: transform .6s var(--ease), background .6s var(--ease); animation-delay: 1.1s !important; }
-  .enter::after { content: ""; position: absolute; inset: -1px; border-radius: 50%; border: 1px solid rgb(255 255 255 / .5); animation: ring 2.8s ease-out infinite; }
-  @keyframes ring { from { transform: scale(1); opacity: .8; } to { transform: scale(1.45); opacity: 0; } }
-  .enter:hover { transform: scale(1.06); background: rgb(255 255 255 / .16); }
-  .gate small { margin-top: 22px; font-size: 15px; color: rgb(255 255 255 / .75); animation-delay: 1.4s !important; }
+  body.gated .nav, body.gated .controls, body.gated .music { opacity: 0; pointer-events: none; }
+  .nav, .controls, .music { transition: opacity 1.2s var(--ease) 1s; }
 
   .music { position: fixed; left: 20px; bottom: 20px; z-index: 30; width: 48px; height: 48px; border-radius: 50%; border: 0; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; gap: 3px; padding-bottom: 16px;
     background: rgb(252 248 243 / .8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgb(60 40 40 / .15); }
@@ -168,7 +180,7 @@
   }
   /* una pagina sola a schermo intero (telefono) */
   body.single .stage { padding: 0; }
-  body.single .book-wrap { filter: none; }
+  body.single.zoomed .book-wrap { filter: none; }
   body.single .pg { padding: 84px 9cqw 96px; }
   body.single .pg::after { display: none; }
   body.single .photo-page .pg { padding: 72px 5cqw 88px; }
@@ -182,13 +194,9 @@
 </head>
 <body class="gated">
 
-<div class="gate" id="gate">
-  <div class="stars" id="gateStars" aria-hidden="true"></div>
-  <p class="gate-names display">Giulia &amp; Marco</p>
-  <p class="gate-date">12 giugno 2027</p>
-  <button class="enter" id="enter" type="button">Apri<br>l'invito</button>
-  <small>Alza il volume: c'è una canzone per te</small>
-</div>
+<div class="desk" aria-hidden="true"></div>
+<div class="glow" id="glow" aria-hidden="true"></div>
+<div class="hint"><p>Tocca per aprire l'invito</p><small>Alza il volume: c'è una canzone per te</small></div>
 
 <nav class="nav" aria-label="Capitoli">
   <a class="mono" data-go="0">G &amp; M</a>
@@ -198,6 +206,7 @@
 </nav>
 
 <main class="stage">
+  <div class="camera">
   <div class="book-wrap" id="wrap">
     <div id="book">
 
@@ -290,6 +299,7 @@
 
     </div>
   </div>
+  </div>
 </main>
 
 <div class="controls">
@@ -305,14 +315,19 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const rand = (a, b) => a + Math.random() * (b - a);
 
-  // ---------- stelle ----------
-  for (const id of ['stars', 'gateStars']) {
-    const box = document.getElementById(id);
-    for (let i = 0; i < (id === 'stars' ? 30 : 50); i++) {
-      const s = document.createElement('i');
-      Object.assign(s.style, { left: rand(0, 100) + '%', top: rand(0, 50) + '%', '--t': rand(2, 5).toFixed(1) + 's', animationDelay: -rand(0, 5).toFixed(1) + 's' });
-      box.append(s);
-    }
+  // ---------- stelle nella pagina del conto alla rovescia, polvere nella luce della scrivania ----------
+  const starsBox = document.getElementById('stars');
+  for (let i = 0; i < 30; i++) {
+    const s = document.createElement('i');
+    Object.assign(s.style, { left: rand(0, 100) + '%', top: rand(0, 50) + '%', '--t': rand(2, 5).toFixed(1) + 's', animationDelay: -rand(0, 5).toFixed(1) + 's' });
+    starsBox.append(s);
+  }
+  const glow = document.getElementById('glow');
+  for (let i = 0; i < 28; i++) {
+    const m = document.createElement('i'), size = rand(1.5, 3.5).toFixed(1) + 'px';
+    Object.assign(m.style, { width: size, height: size, left: rand(25, 75) + '%', top: rand(15, 80) + '%',
+      '--t': rand(7, 14).toFixed(1) + 's', '--x': rand(-60, 60).toFixed(0) + 'px', '--y': rand(-80, 20).toFixed(0) + 'px', animationDelay: -rand(0, 14).toFixed(1) + 's' });
+    glow.append(m);
   }
 
   // ---------- conto alla rovescia ----------
@@ -406,7 +421,7 @@
   }, { passive: true });
 
   // ---------- ingresso e musica ----------
-  const gate = document.getElementById('gate'), song = document.getElementById('song'), music = document.getElementById('music');
+  const song = document.getElementById('song'), music = document.getElementById('music');
   let playing = false, fadeTimer;
   function fadeTo(v, ms) {
     clearInterval(fadeTimer);
@@ -426,15 +441,22 @@
   }
   song.addEventListener('canplay', () => music.hidden = false, { once: true });
   song.addEventListener('error', () => music.remove());
-  document.getElementById('enter').onclick = () => {
+  // tocco ovunque: musica, zoom verso il libro, pausa sul libro chiuso, poi la copertina si apre da sola
+  let entered = false;
+  function enter() {
+    if (entered) return;
+    entered = true;
     song.volume = 0;
     setPlaying(true, true);
-    gate.classList.add('out');
-    document.body.classList.remove('gated');
-    wrap.classList.add('enter-anim');
-    setTimeout(() => gate.remove(), 1900);
-    setTimeout(() => { if (flip.getCurrentPageIndex() === 0) flip.flipNext(); }, 2600); // il libro si apre da solo
-  };
+    document.body.classList.add('zoomed');
+    const zoom = reduce ? 0 : 3400, hold = reduce ? 300 : 2200;
+    setTimeout(() => {
+      document.body.classList.remove('gated');
+      if (flip.getCurrentPageIndex() === 0) flip.flipNext();
+    }, zoom + hold);
+  }
+  document.addEventListener('click', () => { if (document.body.classList.contains('gated')) enter(); });
+  addEventListener('keydown', e => { if (['Enter', ' '].includes(e.key) && document.body.classList.contains('gated')) { e.preventDefault(); enter(); } });
   music.onclick = () => setPlaying(!playing);
   let wasPlaying = false;
   document.addEventListener('visibilitychange', () => {
