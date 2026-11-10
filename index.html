@@ -50,6 +50,12 @@
   #backdrop { position: fixed; inset: -8%; z-index: 0; width: 116%; height: 116%; object-fit: cover; filter: blur(10px); opacity: 0; transition: opacity 1.6s ease 2.2s; }
   body.zoomed #backdrop { opacity: 1; }
   body.opened #topShot { opacity: 0; transition: opacity 1.2s ease; }
+  /* video di transizione: compare dal buio come la foto, poi la camera scende sul libro */
+  #film { opacity: 0; transition: opacity 2.6s ease .3s; }
+  #film[hidden] { display: none; }
+  body.ready #film { opacity: 1; }
+  body.zoomed #film { transition: transform var(--film-dur, 5.9s) cubic-bezier(.45, 0, .55, 1); }
+  body.opened #film { opacity: 0; transition: opacity 1.2s ease; }
   /* vignettatura: bordi scuri come in un film, resta fino a quando si apre il libro */
   .vignette { position: fixed; inset: 0; z-index: 20; pointer-events: none; opacity: 0; transition: opacity 2.6s ease .3s;
     background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 35%, rgb(12 9 6 / .34) 62%, rgb(12 9 6 / .8) 100%); }
@@ -201,6 +207,7 @@
 <img id="backdrop" src="foto/legno.webp" alt="">
 <img class="shot" id="wide" alt="Una scrivania luminosa con il libro dell'invito, un vaso di ortensie e le fedi">
 <img class="shot" id="topShot" src="foto/libro-alto.webp" alt="">
+<video class="shot" id="film" muted playsinline preload="auto" hidden aria-label="La camera si avvicina al libro sulla scrivania"></video>
 <div class="vignette" aria-hidden="true"></div>
 <div class="hint"><p>Tocca il libro</p><small>per aprire l'invito, alza il volume</small></div>
 
@@ -466,8 +473,34 @@
     coverPg.style.background = `#22305c url(foto/libro-alto.webp) ${pageW / 2 - TOP.bx * k}px ${coverH / 2 - TOP.by * k}px / ${TOP.w * k}px ${TOP.h * k}px no-repeat`;
   }
   layoutShots(false);
-  addEventListener('resize', () => { if (!entered) layoutShots(false); });
-  wide.decode().then(() => document.body.classList.add('ready'), () => document.body.classList.add('ready'));
+
+  // video di transizione (telefono): parte dalla stanza e scende sul libro; l'ultimo fotogramma coincide con la foto dall'alto.
+  // misure del libro nell'ultimo fotogramma, in pixel del video
+  const FILM = { base: 'video/ingresso-telefono', w: 720, h: 1280, bx: 358, by: 641, bookH: 742 };
+  const film = document.getElementById('film');
+  const ready = () => document.body.classList.add('ready');
+  let useFilm = !spread && !reduce;
+  function layoutFilm(end) {
+    const W = innerWidth, H = innerHeight, s0 = Math.max(W / FILM.w, H / FILM.h);
+    film.style.transform = end
+      ? place(W / 2, H / 2, Math.floor(pageH) / FILM.bookH, FILM.bx, FILM.by)        // il libro del video copre esattamente la copertina
+      : place((W - FILM.w * s0) / 2 + FILM.bx * s0, (H - FILM.h * s0) / 2 + FILM.by * s0, s0, FILM.bx, FILM.by);
+  }
+  function usePhotos() {   // niente video (computer, riduzione movimento o errore): zoom sulle foto
+    useFilm = false; film.hidden = true; wide.hidden = false;
+    wide.decode().then(ready, ready);
+  }
+  if (useFilm) {
+    wide.hidden = true; film.hidden = false;
+    film.poster = FILM.base + '.webp';
+    film.innerHTML = `<source src="${FILM.base}.webm" type="video/webm"><source src="${FILM.base}.mp4" type="video/mp4">`;
+    film.lastElementChild.addEventListener('error', usePhotos);
+    film.addEventListener('loadeddata', ready, { once: true });
+    layoutFilm(false);
+    film.load();
+  } else usePhotos();
+  setTimeout(ready, 5000);   // se qualcosa tarda, la stanza compare comunque
+  addEventListener('resize', () => { if (entered) return; layoutShots(false); if (useFilm) layoutFilm(false); });
 
   let entered = false;
   const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -476,9 +509,20 @@
     entered = true;
     song.volume = 0;
     setPlaying(true, true);
-    layoutShots(true);
-    document.body.classList.add('zoomed');
-    await wait(reduce ? 50 : 4100);
+    if (useFilm) {
+      // il video scende sul libro; intanto lo ingrandisco piano perché a fine video il libro sia grande quanto la copertina
+      const dur = film.duration || 5.9;
+      document.body.style.setProperty('--film-dur', dur + 's');
+      document.body.classList.add('zoomed');
+      layoutFilm(true);
+      const ended = new Promise(r => { film.addEventListener('ended', r, { once: true }); setTimeout(r, dur * 1000 + 1500); });
+      film.play().catch(() => {});
+      await ended;
+    } else {
+      layoutShots(true);
+      document.body.classList.add('zoomed');
+      await wait(reduce ? 50 : 4100);
+    }
     document.body.classList.add('shown');      // compare il libro sfogliabile, identico alla foto
     await wait(reduce ? 50 : 700);
     document.body.classList.add('printed');    // sulla copertina si "stampano" foto e nomi in oro
