@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Il vostro invito diventa un libro · mircode</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* stile mircode */
+  :root {
+    --paper: #ffffff; --surface: #fffdf9; --cream: #fff7ee; --ink: #241b15; --muted: #6b5d52; --line: #e8ddd0;
+    --brand: #d1590f; --brand-dim: #f4e3d4; --flag: #9a4b00; --flag-bg: #fdefdc;
+    --display: "Fraunces", Georgia, serif; --body: "Inter", system-ui, sans-serif;
+  }
+  @page { size: A4; margin: 18mm 18mm 20mm;
+    @bottom-left { content: "mircode"; font: 600 8.5pt "Fraunces", serif; color: #d1590f; }
+    @bottom-right { content: counter(page) " / " counter(pages); font: 8.5pt "Inter", sans-serif; color: #6b5d52; } }
+  @page :first { @bottom-left { content: none; } @bottom-right { content: none; } }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 10.5pt/1.6 var(--body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+  h1 { font-weight: 700; font-size: 34pt; line-height: 1.08; }
+  h2 { font-weight: 600; font-size: 21pt; line-height: 1.15; margin-bottom: 10pt; }
+  h3 { font-weight: 600; font-size: 13pt; line-height: 1.3; }
+  p { margin: 0 0 8pt; }
+  .eyebrow { font-size: 8pt; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--brand); margin: 0 0 6pt; }
+  .lede { font-size: 12pt; color: var(--muted); max-width: 60ch; }
+  .muted { color: var(--muted); }
+  section { break-before: page; }
+  .avoid { break-inside: avoid; }
+  img { display: block; max-width: 100%; }
+  .shot { border-radius: 8pt; border: 1px solid var(--line); box-shadow: 0 6pt 18pt rgb(36 27 21 / .12); }
+
+  /* copertina */
+  .cover { height: 257mm; display: flex; flex-direction: column; }
+  .brand { font: 700 18pt var(--display); letter-spacing: -.01em; }
+  .brand span { color: var(--brand); }
+  .cover h1 { margin: 26pt 0 12pt; }
+  .cover .hero { margin-top: 18pt; flex: 1; min-height: 0; border-radius: 10pt; overflow: hidden; border: 1px solid var(--line); }
+  .cover .hero img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; }
+  .cover .meta { display: flex; justify-content: space-between; margin-top: 12pt; font-size: 9pt; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8pt; }
+
+  /* come funziona */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12pt; margin-top: 14pt; }
+  .step .num { font: 600 22pt var(--display); color: var(--brand); line-height: 1; margin: 10pt 0 4pt; }
+  .step img { aspect-ratio: 4 / 3; object-fit: cover; width: 100%; }
+  .step p { font-size: 9.5pt; }
+  .wide-shot { margin: 16pt auto 0; width: 58%; }
+  .caption { font-size: 8.5pt; color: var(--muted); }
+  .note { background: var(--flag-bg); border-left: 3px solid var(--flag); border-radius: 0 6pt 6pt 0; padding: 10pt 13pt; margin-top: 14pt; }
+  .note strong { color: var(--flag); }
+  .note p:last-child { margin: 0; }
+
+  /* capitoli */
+  .chapter { display: grid; grid-template-columns: 26mm 1fr; gap: 0 12pt; padding: 11pt 0; border-bottom: 1px solid var(--line); break-inside: avoid; }
+  .chapter:last-child { border-bottom: none; }
+  .chapter .pages { font: 600 8pt var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--brand); padding-top: 4pt; }
+  .chapter h3 { margin-bottom: 3pt; }
+  .chapter .what { margin-bottom: 6pt; }
+  .need { display: flex; flex-wrap: wrap; gap: 4pt 6pt; margin: 0 0 6pt; padding: 0; list-style: none; }
+  .need li { font-size: 8.5pt; font-weight: 500; background: var(--brand-dim); color: #7a3608; border-radius: 99pt; padding: 1.5pt 8pt; }
+  .ask { font-size: 9.5pt; color: var(--muted); margin: 0; }
+  .ask em { font-family: var(--display); color: var(--ink); }
+  .auto { font-size: 9pt; color: var(--muted); font-style: italic; }
+
+  /* scelte */
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 9pt; margin-top: 10pt; }
+  .choice { background: var(--surface); border: 1px solid var(--line); border-radius: 8pt; padding: 10pt 12pt; break-inside: avoid; }
+  .choice h3 { font-size: 11.5pt; display: flex; gap: 7pt; align-items: baseline; }
+  .box { flex: 0 0 auto; width: 9pt; height: 9pt; border: 1.3px solid var(--brand); border-radius: 2pt; transform: translateY(1pt); }
+  .choice p { font-size: 9.5pt; color: var(--muted); margin: 3pt 0 0; }
+  .lines { margin-top: 12pt; }
+  .lines div { border-bottom: 1px solid var(--line); height: 20pt; }
+
+  /* checklist */
+  .check { list-style: none; padding: 0; margin: 8pt 0 0; columns: 2; column-gap: 18pt; }
+  .check li { display: flex; gap: 8pt; break-inside: avoid; padding: 5pt 0; border-bottom: 1px solid var(--line); font-size: 9.8pt; }
+  .check li .box { margin-top: 2pt; }
+  .check b { font-weight: 600; }
+  ol.next { margin: 8pt 0 0; padding: 0; list-style: none; counter-reset: s; }
+  ol.next li { counter-increment: s; display: grid; grid-template-columns: 22pt 1fr; padding: 7pt 0; border-bottom: 1px solid var(--line); }
+  ol.next li::before { content: counter(s); font: 600 14pt var(--display); color: var(--brand); line-height: 1.2; }
+  .sign { margin-top: 22pt; font-family: var(--display); font-size: 12pt; }
+</style>
+</head>
+<body>
+
+<!-- ============ COPERTINA ============ -->
+<div class="cover">
+  <div class="brand">mircode<span>.</span></div>
+  <h1>Il vostro invito diventa un libro da sfogliare</h1>
+  <p class="lede">Una proposta per raccontare la vostra storia pagina dopo pagina, e la scaletta da completare insieme prima che io scriva e impagini il libro.</p>
+  <div class="hero"><img src="img/copertina.webp" alt="La copertina del libro con la foto degli sposi e i nomi in oro"></div>
+  <div class="meta"><span>Bozza della storyline da completare insieme</span><span>Novembre 2026</span></div>
+</div>
+
+<!-- ============ COME FUNZIONA ============ -->
+<section>
+  <p class="eyebrow">L'idea</p>
+  <h2>Come funziona l'invito</h2>
+  <p class="lede">Gli ospiti ricevono un link. Quando lo aprono non trovano una pagina da scorrere, ma un libro vero appoggiato su una scrivania, che si sfoglia girando le pagine come se fossero di carta.</p>
+
+  <div class="steps">
+    <div class="step avoid">
+      <img class="shot" src="img/scrivania.webp" alt="">
+      <div class="num">1</div>
+      <h3>Il libro sulla scrivania</h3>
+      <p>La stanza compare dal buio, piena di luce. Al centro c'è il libro chiuso, con l'invito a toccarlo. Parte la vostra canzone.</p>
+    </div>
+    <div class="step avoid">
+      <img class="shot" src="img/copertina.webp" alt="">
+      <div class="num">2</div>
+      <h3>La copertina</h3>
+      <p>La camera si avvicina fino a guardare il libro dall'alto. Sulla tela compaiono la vostra foto, i nomi in oro e la data.</p>
+    </div>
+    <div class="step avoid">
+      <img class="shot" src="img/storia.webp" alt="">
+      <div class="num">3</div>
+      <h3>Le pagine</h3>
+      <p>Il libro si apre da solo. Da lì si sfoglia con il dito o con il mouse: la pagina si piega come un foglio vero.</p>
+    </div>
+  </div>
+
+  <div class="note avoid">
+    <p><strong>Sul telefono il libro occupa tutto lo schermo</strong>, una pagina alla volta. È lì che lo apriranno quasi tutti i vostri ospiti, quindi ogni pagina è pensata prima di tutto per essere letta da smartphone. Nelle immagini nomi, date e testi sono di esempio: verranno sostituiti con i vostri.</p>
+  </div>
+
+  <div class="wide-shot avoid">
+    <img class="shot" src="img/sfoglio.webp" alt="Una pagina che si gira">
+    <p class="caption" style="margin-top:6pt">La pagina mentre si gira: si vede la carta che si piega e l'ombra sulla pagina sotto.</p>
+  </div>
+
+
+</section>
+
+<!-- ============ LA STORIA ============ -->
+<section>
+  <p class="eyebrow">La storyline</p>
+  <h2>La vostra storia, capitolo per capitolo</h2>
+  <p class="lede">Questa è la scaletta che vi propongo. Ogni capitolo occupa una o due pagine del libro. Per ognuno trovate cosa si vede, cosa mi serve da voi e qualche domanda per aiutarvi a scrivere. Togliete, spostate o aggiungete capitoli liberamente: è la vostra storia.</p>
+
+  <div class="chapter">
+    <div class="pages">Copertina</div>
+    <div>
+      <h3>I vostri nomi e una foto</h3>
+      <p class="what">La foto dentro una finestra ad arco, i nomi in oro, la data.</p>
+      <ul class="need"><li>1 foto verticale</li><li>Nomi come volete che appaiano</li></ul>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="pages">Pagina 1</div>
+    <div>
+      <h3>La dedica</h3>
+      <p class="what">La prima pagina dopo la copertina, come nei libri veri: una frase sola, rivolta a chi sfoglia.</p>
+      <ul class="need"><li>1 frase, massimo 12 parole</li></ul>
+      <p class="ask">Per esempio: <em>«Questo libro è per te»</em>, <em>«A chi ha fatto parte della nostra storia»</em>.</p>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="pages">Pagina 2</div>
+    <div>
+      <h3>L'invito</h3>
+      <p class="what">Due o tre righe che dicono la cosa più importante: vi sposate e volete i vostri ospiti accanto.</p>
+      <ul class="need"><li>30–40 parole</li></ul>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="pages">Pagine 3–4</div>
+    <div>
+      <h3>Come ci siamo conosciuti</h3>
+      <p class="what">Una vostra foto a tutta pagina a sinistra, il racconto a destra.</p>
+      <ul class="need"><li>1 foto</li><li>60–90 parole</li></ul>
+      <p class="ask">Dove eravate? Chi ha parlato per primo? Cosa avete pensato l'uno dell'altra? C'è un dettaglio buffo che raccontate sempre?</p>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="pages">Pagine 5–8</div>
+    <div>
+      <h3>I momenti che ci hanno portato qui</h3>
+      <p class="what">Da due a quattro pagine di ricordi: ogni pagina una foto con una didascalia breve, come in un album.</p>
+      <ul class="need"><li>2–4 foto</li><li>1 didascalia per foto, 10–20 parole</li></ul>
+      <p class="ask">Il primo viaggio insieme, la prima casa, un animale, una festa, un'avventura andata storta e diventata un ricordo bellissimo.</p>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="pages">Pagine 9–10</div>
+    <div>
+      <h3>La proposta</h3>
+      <p class="what">Il momento del sì, raccontato da uno dei due o da entrambi.</p>
+      <ul class="need"><li>1 foto (anche dell'anello)</li><li>60–90 parole</li></ul>
+      <p class="ask">Dove è successo? Era una sorpresa? Com'è andata davvero, emozione e imprevisti compresi?</p>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="pages">Pagina 11</div>
+    <div>
+      <h3>Il conto alla rovescia</h3>
+      <p class="what">Un cielo al tramonto con giorni, ore e minuti che mancano al matrimonio.</p>
+      <p class="auto">Si aggiorna da solo: mi serve solo la data e l'ora della cerimonia.</p>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="pages">Pagina 12</div>
+    <div>
+      <h3>Il nostro giorno</h3>
+      <p class="what">Il programma con orari e luoghi. Ogni luogo ha il pulsante per aprire il percorso su Google Maps.</p>
+      <ul class="need"><li>Orari</li><li>Nomi e indirizzi dei luoghi</li><li>Note pratiche (parcheggio, navetta)</li></ul>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="pages">Pagine 13–14</div>
+    <div>
+      <h3>Il luogo e cosa indossare</h3>
+      <p class="what">Una foto della location con una frase, accanto le indicazioni sul dress code e i colori della giornata.</p>
+      <ul class="need"><li>1 foto della location</li><li>Dress code</li><li>3–4 colori, se ne avete</li></ul>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="pages">Pagina 15</div>
+    <div>
+      <h3>Un pensiero per noi</h3>
+      <p class="what">La lista nozze o l'IBAN, con il pulsante che lo copia in un tocco.</p>
+      <ul class="need"><li>IBAN e intestatario, oppure link alla lista</li><li>1–2 frasi</li></ul>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="pages">Pagina 16</div>
+    <div>
+      <h3>Ci vediamo</h3>
+      <p class="what">Il saluto finale e la vostra firma. Poi la quarta di copertina chiude il libro.</p>
+      <ul class="need"><li>1 frase di saluto</li><li>Firma</li></ul>
+    </div>
+  </div>
+
+
+</section>
+
+<!-- ============ SCELTE ============ -->
+<section>
+  <p class="eyebrow">Da decidere insieme</p>
+  <h2>Pagine in più, se vi servono</h2>
+  <p class="lede">Queste pagine non sono nella scaletta base. Segnate quelle che volete aggiungere.</p>
+  <div class="choices">
+    <div class="choice"><h3><span class="box"></span>Conferma presenza</h3><p>Un modulo con cui gli ospiti rispondono se ci saranno, quanti sono e se hanno allergie. Le risposte arrivano a voi.</p></div>
+    <div class="choice"><h3><span class="box"></span>Come arrivare e dove dormire</h3><p>Indicazioni da fuori città, parcheggi, hotel consigliati vicino alla location.</p></div>
+    <div class="choice"><h3><span class="box"></span>I testimoni</h3><p>Una pagina per presentarli, con foto e due righe su ciascuno.</p></div>
+    <div class="choice"><h3><span class="box"></span>Il menù</h3><p>Le portate della cena, se volete svelarle in anticipo.</p></div>
+    <div class="choice"><h3><span class="box"></span>La playlist</h3><p>Gli ospiti suggeriscono una canzone da far suonare alla festa.</p></div>
+    <div class="choice"><h3><span class="box"></span>Altro</h3><p>Un'idea vostra che non trovate qui.</p></div>
+  </div>
+
+  <h2 style="margin-top:26pt">Il tono del racconto</h2>
+  <p class="lede">Come volete che suoni la vostra storia? Scegliete il tono più vicino a voi.</p>
+  <div class="choices">
+    <div class="choice"><h3><span class="box"></span>Romantico</h3><p>Caldo ed emozionante, come una lettera d'amore.</p></div>
+    <div class="choice"><h3><span class="box"></span>Ironico</h3><p>Leggero e divertente, con gli aneddoti che fanno ridere gli amici.</p></div>
+    <div class="choice"><h3><span class="box"></span>Poetico</h3><p>Frasi brevi ed evocative, più immagini che racconto.</p></div>
+    <div class="choice"><h3><span class="box"></span>Semplice</h3><p>Diretto e sincero, come se lo raccontaste a voce.</p></div>
+  </div>
+
+  <h2 style="margin-top:26pt">Chi scrive i testi</h2>
+  <div class="choices">
+    <div class="choice"><h3><span class="box"></span>Li scriviamo noi</h3><p>Mi mandate i testi seguendo la scaletta, io li sistemo per farli stare bene nelle pagine.</p></div>
+    <div class="choice"><h3><span class="box"></span>Li scrivi tu</h3><p>Facciamo una chiacchierata di mezz'ora in cui mi raccontate la vostra storia, poi scrivo io e voi correggete.</p></div>
+  </div>
+</section>
+
+<!-- ============ COSA MI SERVE ============ -->
+<section>
+  <p class="eyebrow">Il materiale</p>
+  <h2>Cosa mi serve da voi</h2>
+  <p class="lede">Potete mandarmi tutto su WhatsApp o per email, anche un po' alla volta.</p>
+  <ul class="check">
+    <li><span class="box"></span><span><b>Le foto</b>, nella qualità più alta che avete. Mandatele come file o documento, non come foto su WhatsApp, così non perdono qualità.</span></li>
+    <li><span class="box"></span><span><b>I testi</b> dei capitoli che avete scelto, anche solo come appunti.</span></li>
+    <li><span class="box"></span><span><b>Nomi</b> esattamente come volete che compaiano.</span></li>
+    <li><span class="box"></span><span><b>Data e ora</b> della cerimonia.</span></li>
+    <li><span class="box"></span><span><b>Luoghi</b>: nome, indirizzo e orario di cerimonia e ricevimento.</span></li>
+    <li><span class="box"></span><span><b>Dress code</b> ed eventuali colori della giornata.</span></li>
+    <li><span class="box"></span><span><b>Lista nozze</b>: IBAN con intestatario, oppure il link.</span></li>
+    <li><span class="box"></span><span><b>La canzone</b> che accoglie gli ospiti, come file audio. Se è una canzone famosa e il sito è pubblico, tecnicamente servirebbero i diritti: in alternativa ne scegliamo una libera.</span></li>
+    <li><span class="box"></span><span><b>La foto di copertina</b>, verticale, con voi due ben visibili al centro.</span></li>
+    <li><span class="box"></span><span><b>Le pagine in più</b> e il tono che avete scelto nelle pagine precedenti.</span></li>
+  </ul>
+
+  <h2 style="margin-top:26pt">I prossimi passi</h2>
+  <ol class="next">
+    <li><span>Leggete la scaletta e segnate cosa tenere, cosa togliere e cosa aggiungere.</span></li>
+    <li><span>Mi mandate foto, testi e informazioni pratiche.</span></li>
+    <li><span>Preparo la prima versione completa del libro e vi mando il link per sfogliarla.</span></li>
+    <li><span>Mi dite cosa cambiare. Sistemo finché il libro non vi somiglia davvero.</span></li>
+    <li><span>Vi consegno il link definitivo da mandare agli ospiti.</span></li>
+  </ol>
+
+
+
+  <p class="sign">A presto,<br>Mirko · mircode</p>
+</section>
+
+</body>
+</html>
