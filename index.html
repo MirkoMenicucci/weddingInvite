@@ -50,6 +50,11 @@
   #backdrop { position: fixed; inset: -8%; z-index: 0; width: 116%; height: 116%; object-fit: cover; filter: blur(10px); opacity: 0; transition: opacity 1.6s ease 2.2s; }
   body.zoomed #backdrop { opacity: 1; }
   body.opened #topShot { opacity: 0; transition: opacity 1.2s ease; }
+  /* vignettatura: bordi scuri come in un film, resta fino a quando si apre il libro */
+  .vignette { position: fixed; inset: 0; z-index: 20; pointer-events: none; opacity: 0; transition: opacity 2.6s ease .3s;
+    background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 35%, rgb(12 9 6 / .34) 62%, rgb(12 9 6 / .8) 100%); }
+  body.ready .vignette { opacity: 1; }
+  body.opened .vignette { opacity: 0; transition: opacity 1.6s ease; }
   .hint { position: fixed; z-index: 25; left: 50%; bottom: 7vh; translate: -50% 0; text-align: center; color: var(--ink); pointer-events: none; white-space: nowrap;
     padding: 14px 30px 13px; border-radius: 999px; background: rgb(255 253 250 / .78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 12px 34px rgb(40 30 20 / .18);
     opacity: 0; transition: opacity 1.4s var(--ease) 2.2s, translate 1.4s var(--ease) 2.2s; }
@@ -196,6 +201,7 @@
 <img id="backdrop" src="foto/legno.webp" alt="">
 <img class="shot" id="wide" alt="Una scrivania luminosa con il libro dell'invito, un vaso di ortensie e le fedi">
 <img class="shot" id="topShot" src="foto/libro-alto.webp" alt="">
+<div class="vignette" aria-hidden="true"></div>
 <div class="hint"><p>Tocca il libro</p><small>per aprire l'invito, alza il volume</small></div>
 
 <nav class="nav" aria-label="Capitoli">
